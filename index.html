@@ -3,14 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Obra 292 (v5.1) - TESTE</title>
-    
-    <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão Completo - Obra 292 (Firebase v5.1)</title>
     
     <!-- CSS Files -->
@@ -21,6 +13,417 @@
     <link rel="stylesheet" href="assets/css/calendar.css">
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
+    
+    <!-- CSS TEMPORÁRIO PARA RESOLVER PROBLEMAS IMEDIATOS -->
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Sistema de Login */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1f2937;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        /* Botões */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        
+        /* Formulários */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        /* Modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Status e indicadores */
+        .sync-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        
+        .sync-indicator.synced {
+            background: #10b981;
+            color: white;
+        }
+        
+        .sync-indicator.syncing {
+            background: #fbbf24;
+        }
+        
+        .sync-indicator.error {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .sync-indicator.offline {
+            background: #6b7280;
+            color: white;
+        }
+        
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .resumo-numero {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.3s;
+        }
+        
+        /* Calendário básico */
+        .calendario {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .dia {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            min-height: 100px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dia:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .dia-header {
+            background: #1f2937;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        
+        /* Responsivo básico */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendario {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 4px;
+            }
+            
+            .dia {
+                min-height: 60px;
+                padding: 4px;
+                font-size: 12px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        /* Notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+        }
+        
+        .notification.active {
+            display: flex;
+        }
+        
+        .notification.error {
+            background: #ef4444;
+        }
+        
+        .notification.warning {
+            background: #f59e0b;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background: #e5e7eb;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* Log de atividades */
+        .activity-log {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transform: translateX(320px);
+            transition: transform 0.3s;
+            z-index: 900;
+        }
+        
+        .activity-log.active {
+            transform: translateX(0);
+        }
+        
+        .activity-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 899;
+        }
+        
+        /* Filtros */
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+        
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-pill {
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .filter-pill.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        /* Status indicators */
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-verde { background: #10b981; }
+        .status-amarelo { background: #f59e0b; }
+        .status-vermelho { background: #ef4444; }
+    </style>
 </head>
 <body>
     <!-- Tela de Login -->
@@ -677,14 +1080,35 @@
         </div>
     </div>
     
-    <!-- Firebase Scripts -->
+    <!-- Firebase Scripts (CDN) - PRIMEIRO -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
-    <!-- Configuration Scripts -->
+    <!-- Configuration Scripts - SEGUNDO -->
     <script src="assets/js/config/constants.js"></script>
     <script src="assets/js/config/firebase.js"></script>
+    
+    <!-- Script temporário para resolver problemas imediatos -->
+    <script>
+        // Aguardar Firebase estar pronto
+        document.addEventListener('firebaseReady', function() {
+            console.log('🎉 Sistema pronto para uso!');
+        });
+        
+        // Função temporária para testar se tudo está funcionando
+        function testarSistema() {
+            console.group('🧪 TESTE DO SISTEMA');
+            console.log('Firebase:', typeof firebase !== 'undefined' ? '✅' : '❌');
+            console.log('Database:', !!window.database ? '✅' : '❌');
+            console.log('Auth:', !!window.auth ? '✅' : '❌');
+            console.log('Constants:', !!window.VERSAO_SISTEMA ? '✅' : '❌');
+            console.groupEnd();
+        }
+        
+        // Executar teste após 3 segundos
+        setTimeout(testarSistema, 3000);
+    </script>
     
     <!-- Core Scripts -->
     <script src="assets/js/core/state.js"></script>
@@ -711,817 +1135,251 @@
     
     <!-- Main Application Script -->
     <script src="assets/js/app.js"></script>
-</body>
-</html>
     
-    body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #f8fafc;
-        color: #334155;
-    }
-    
-    .hidden { display: none<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão - Obra 292 (v5.1) - MIGRAÇÃO</title>
-    
-    <!-- CSS Externos (seus arquivos existentes) -->
-    <link rel="stylesheet" href="assets/css/reset.css">
-    <link rel="stylesheet" href="assets/css/variables.css">
-    <link rel="stylesheet" href="assets/css/layout.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/calendar.css">
-    <link rel="stylesheet" href="assets/css/animations.css">
-    <link rel="stylesheet" href="assets/css/responsive.css">
-    
-    <style>
-    /* CSS de Fallback - só se os arquivos externos não carregarem */
-    .hidden { display: none !important; }
-    
-    /* Garantir funcionamento básico se CSS externo falhar */
-    body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-    
-    .btn {
-        cursor: pointer;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-    
-    .btn-primary { background: #3b82f6; color: white; }
-    .btn-secondary { background: #6b7280; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #10b981;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 1000;
-        transform: translateX(400px);
-        transition: transform 0.3s;
-    }
-    
-    .notification.show { transform: translateX(0); }
-    .notification.error { background: #ef4444; }
-    .notification.warning { background: #f59e0b; }
-    .notification.info { background: #3b82f6; }
-    </style>
-</head>
-<body>
-    <!-- Sistema de Notificações -->
-    <div id="notification" class="notification">
-        <span id="notificationText"></span>
-    </div>
-    
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="login-container">
-        <div class="login-box">
-            <h2>🏗️ Sistema de Gestão</h2>
-            <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
-            
-            <!-- Credenciais de Demo -->
-            <div class="demo-info">
-                <strong>🔧 Acesso Demo:</strong><br>
-                Email: <code>demo@sistema.com</code><br>
-                Senha: <code>123456</code>
-            </div>
-            
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="demo@sistema.com" value="demo@sistema.com">
-            </div>
-            
-            <div class="form-group">
-                <label>Senha</label>
-                <input type="password" id="loginPassword" placeholder="123456" value="123456">
-            </div>
-            
-            <button class="btn btn-primary" onclick="fazerLogin()">
-                Entrar
-            </button>
-            
-            <button class="btn btn-secondary" onclick="loginDemo()">
-                🚀 Login Demo Rápido
-            </button>
-            
-            <div style="margin-top: 16px; text-align: center; font-size: 12px; color: #6b7280;">
-                Sistema v5.1 - Migração CSS ✅
-            </div>
-        </div>
-    </div>
-    
-    <!-- Container Principal -->
-    <div class="container hidden" id="mainContainer">
-        <div class="header">
-            <div>
-                <h1>Sistema de Gestão Colaborativo</h1>
-                <p>Obra 292 - Museu Nacional</p>
-                <p style="font-size: 14px; color: #6b7280;">
-                    Sistema v5.1 - MIGRAÇÃO PASSO 1 ✅
-                    <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
-                </p>
-            </div>
-            <div style="text-align: right;">
-                <p id="dataAtual" style="color: #6b7280;"></p>
-                <div style="margin-top: 8px;">
-                    <button class="btn btn-danger" style="width: auto; margin: 0;" onclick="fazerLogout()">
-                        🚪 Sair
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Dashboard Básico -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #10b981;">5</div>
-                <div>Em Dia</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #f59e0b;">2</div>
-                <div>Atenção</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #ef4444;">1</div>
-                <div>Atraso</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #8b5cf6;">3</div>
-                <div>Eventos</div>
-            </div>
-        </div>
-        
-        <!-- Status do Sistema -->
-        <div class="card">
-            <h3>📊 Status do Sistema</h3>
-            <div class="status-sistema">
-                <div class="status-item">
-                    <strong>Login:</strong> <span style="color: #10b981;">Funcionando</span>
-                </div>
-                <div class="status-item">
-                    <strong>CSS Externos:</strong> <span style="color: #f59e0b;">Testando</span>
-                </div>
-                <div class="status-item">
-                    <strong>JS Módulos:</strong> <span style="color: #6b7280;">Pendente</span>
-                </div>
-                <div class="status-item">
-                    <strong>Firebase:</strong> <span style="color: #6b7280;">Pendente</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Próximos Passos -->
-        <div class="card">
-            <h3>🔄 Migração para Arquitetura Modular</h3>
-            <p><strong>✅ PASSO 1: CSS Externos integrados!</strong></p>
-            <p style="margin-top: 8px; color: #6b7280;">
-                Próximos passos da migração:
-            </p>
-            <ul style="margin-top: 12px; margin-left: 20px; color: #6b7280;">
-                <li><span style="color: #10b981;">✅</span> Sistema básico funcionando</li>
-                <li><span style="color: #10b981;">✅</span> CSS externos integrados</li>
-                <li><span style="color: #f59e0b;">⏳</span> Integrar módulos JS existentes</li>
-                <li><span style="color: #6b7280;">⭕</span> Conectar Firebase</li>
-                <li><span style="color: #6b7280;">⭕</span> Ativar funcionalidades avançadas</li>
-            </ul>
-            
-            <button class="btn btn-primary" onclick="testarConexoes()" style="margin-top: 16px; width: auto;">
-                🔍 Testar CSS Externos
-            </button>
-        </div>
-    </div>
-
+    <!-- FUNÇÕES TEMPORÁRIAS PARA RESOLVER PROBLEMAS IMEDIATOS -->
     <script>
-    // ========== MIGRAÇÃO PARA ARQUITETURA MODULAR ==========
-    // PASSO 1: Integração CSS Externos
-    // Mantém funcionalidade básica enquanto integra seus arquivos existentes
-    
-    console.log('🔄 MIGRAÇÃO PASSO 1: CSS externos integrados');
-    console.log('🎯 Testando carregamento dos arquivos da pasta assets/css/');
-    
-    // Sistema de notificações
-    function mostrarNotificacao(mensagem, tipo = 'info') {
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notificationText');
+        // ========== FUNÇÕES CRÍTICAS TEMPORÁRIAS ==========
+        // Para resolver o problema imediato das funções não encontradas
         
-        if (!notification || !notificationText) return;
-        
-        notification.className = 'notification';
-        if (tipo !== 'info') notification.classList.add(tipo);
-        
-        notificationText.textContent = mensagem;
-        notification.classList.add('show');
-        
-        setTimeout(() => notification.classList.remove('show'), 3000);
-        console.log(`📢 ${tipo.toUpperCase()}: ${mensagem}`);
-    }
-    
-    // Funções de autenticação
-    function fazerLogin() {
-        console.log('🔑 Executando login...');
-        
-        const email = document.getElementById('loginEmail')?.value;
-        const senha = document.getElementById('loginPassword')?.value;
-        
-        if (!email || !senha) {
-            mostrarNotificacao('Preencha email e senha!', 'error');
-            return;
+        // Funções básicas
+        function fazerLogin() {
+            console.log('⚠️ fazerLogin() temporária');
+            alert('Sistema em migração - fazerLogin será implementada');
         }
         
-        // Login demo
-        if (email === 'demo@sistema.com' && senha === '123456') {
-            mostrarNotificacao('Login realizado com sucesso!', 'success');
-            
-            // Esconder login e mostrar dashboard
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainContainer').classList.remove('hidden');
-            
-            // Atualizar informações do usuário
-            document.getElementById('usuarioInfo').textContent = '👤 Usuário Demo';
-            
-            // Atualizar data
-            atualizarDataAtual();
-            
-            console.log('✅ Login bem-sucedido');
-        } else {
-            mostrarNotificacao('Use: demo@sistema.com / 123456', 'error');
+        function mostrarRegistro() {
+            console.log('⚠️ mostrarRegistro() temporária');
+            alert('Sistema em migração - mostrarRegistro será implementada');
         }
-    }
-    
-    function loginDemo() {
-        console.log('🚀 Login demo rápido...');
-        document.getElementById('loginEmail').value = 'demo@sistema.com';
-        document.getElementById('loginPassword').value = '123456';
-        fazerLogin();
-    }
-    
-    function fazerLogout() {
-        if (!confirm('Tem certeza que deseja sair?')) return;
         
-        console.log('🚪 Fazendo logout...');
+        function fecharModal(modalId) {
+            console.log('⚠️ fecharModal() temporária para:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
         
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('mainContainer').classList.add('hidden');
+        function toggleActivityLog() {
+            console.log('⚠️ toggleActivityLog() temporária');
+            const log = document.getElementById('activityLog');
+            if (log) {
+                log.classList.toggle('active');
+            }
+        }
         
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
+        function resolverConflito(acao) {
+            console.log('⚠️ resolverConflito() temporária:', acao);
+            document.getElementById('conflictModal').classList.remove('active');
+        }
         
-        mostrarNotificacao('Logout realizado!', 'success');
-    }
-    
-    function atualizarDataAtual() {
-        const hoje = new Date();
-        const elemento = document.getElementById('dataAtual');
-        if (elemento) {
-            elemento.textContent = hoje.toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+        function exportarDados() {
+            console.log('⚠️ exportarDados() temporária');
+            alert('Sistema em migração - exportarDados será implementada');
+        }
+        
+        function mostrarImportar() {
+            console.log('⚠️ mostrarImportar() temporária');
+            alert('Sistema em migração - mostrarImportar será implementada');
+        }
+        
+        function mostrarMarcarFeriado() {
+            console.log('⚠️ mostrarMarcarFeriado() temporária');
+            alert('Sistema em migração - mostrarMarcarFeriado será implementada');
+        }
+        
+        function fazerLogout() {
+            console.log('⚠️ fazerLogout() temporária');
+            if (confirm('Deseja realmente sair?')) {
+                alert('Sistema em migração - fazerLogout será implementada');
+            }
+        }
+        
+        function mudarMes(direcao) {
+            console.log('⚠️ mudarMes() temporária:', direcao);
+            alert('Sistema em migração - mudarMes será implementada');
+        }
+        
+        function mostrarNovoEvento() {
+            console.log('⚠️ mostrarNovoEvento() temporária');
+            alert('Sistema em migração - mostrarNovoEvento será implementada');
+        }
+        
+        function buscarGlobalDebounced() {
+            console.log('⚠️ buscarGlobalDebounced() temporária');
+        }
+        
+        function buscarGlobal() {
+            console.log('⚠️ buscarGlobal() temporária');
+            alert('Sistema em migração - buscarGlobal será implementada');
+        }
+        
+        function filtrarStatus(status, elemento) {
+            console.log('⚠️ filtrarStatus() temporária:', status);
+            document.querySelectorAll('.filter-pill').forEach(pill => {
+                pill.classList.remove('active');
             });
-        }
-    }
-    
-    function testarConexoes() {
-        mostrarNotificacao('Testando conexões e CSS externos...', 'info');
-        
-        setTimeout(() => {
-            let resultados = [];
-            
-            // Testar se Firebase está disponível
-            if (typeof firebase !== 'undefined') {
-                resultados.push('✅ Firebase carregado');
-            } else {
-                resultados.push('❌ Firebase não disponível');
+            if (elemento) {
+                elemento.classList.add('active');
             }
+        }
+        
+        function voltarDashboard() {
+            console.log('⚠️ voltarDashboard() temporária');
+            alert('Sistema em migração - voltarDashboard será implementada');
+        }
+        
+        function mostrarNovaAtividade() {
+            console.log('⚠️ mostrarNovaAtividade() temporária');
+            alert('Sistema em migração - mostrarNovaAtividade será implementada');
+        }
+        
+        function voltarParaArea() {
+            console.log('⚠️ voltarParaArea() temporária');
+            alert('Sistema em migração - voltarParaArea será implementada');
+        }
+        
+        function mostrarNovaTarefa() {
+            console.log('⚠️ mostrarNovaTarefa() temporária');
+            alert('Sistema em migração - mostrarNovaTarefa será implementada');
+        }
+        
+        function mostrarMarcarStatus() {
+            console.log('⚠️ mostrarMarcarStatus() temporária');
+            alert('Sistema em migração - mostrarMarcarStatus será implementada');
+        }
+        
+        function renderizarResponsabilidades(pessoa) {
+            console.log('⚠️ renderizarResponsabilidades() temporária:', pessoa);
+            alert('Sistema em migração - renderizarResponsabilidades será implementada');
+        }
+        
+        function mostrarAdicionarResponsabilidade() {
+            console.log('⚠️ mostrarAdicionarResponsabilidade() temporária');
+            alert('Sistema em migração - mostrarAdicionarResponsabilidade será implementada');
+        }
+        
+        function salvarObservacoes() {
+            console.log('⚠️ salvarObservacoes() temporária');
+            alert('Sistema em migração - salvarObservacoes será implementada');
+        }
+        
+        function atualizarCamposEvento() {
+            console.log('⚠️ atualizarCamposEvento() temporária');
+        }
+        
+        function toggleHorarios() {
+            console.log('⚠️ toggleHorarios() temporária');
+            const diaCompleto = document.getElementById('eventoDiaCompleto')?.checked;
+            const grupoHorarios = document.getElementById('grupoHorarios');
+            const grupoDataFim = document.getElementById('grupoDataFim');
             
-            // Testar CSS externos 
-            const testElement = document.createElement('div');
-            testElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;';
-            testElement.className = 'test-css-variables';
-            document.body.appendChild(testElement);
-            
-            const computedStyle = getComputedStyle(testElement);
-            const hasVariables = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-            
-            if (hasVariables) {
-                resultados.push('✅ CSS Variables carregadas');
-                resultados.push('✅ Arquivos CSS externos funcionando');
-            } else {
-                resultados.push('⚠️ CSS Variables não encontradas - usando fallback');
+            if (diaCompleto && grupoHorarios && grupoDataFim) {
+                grupoHorarios.style.display = 'none';
+                grupoDataFim.style.display = 'block';
+            } else if (!diaCompleto && grupoHorarios && grupoDataFim) {
+                grupoHorarios.style.display = 'grid';
+                grupoDataFim.style.display = 'none';
             }
-            
-            document.body.removeChild(testElement);
-            
-            // Testar estrutura de arquivos
-            resultados.push('✅ Estrutura HTML funcional');
-            resultados.push('✅ JavaScript ativo');
-            
-            console.log('📊 Resultados dos testes:', resultados);
-            mostrarNotificacao(`Testes concluídos! ${resultados.length} verificações`, 'success');
-            
-            // Mostrar no console
-            resultados.forEach(resultado => console.log(resultado));
-            
-            // Próximo passo
-            setTimeout(() => {
-                mostrarNotificacao('Pronto para PASSO 2: Integrar módulos JS', 'info');
-            }, 2000);
-        }, 1000);
-    }
-    
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ DOM carregado');
-        atualizarDataAtual();
-        
-        // Verificar se CSS externos carregaram
-        setTimeout(() => {
-            verificarCSSExternos();
-        }, 500);
-        
-        mostrarNotificacao('Sistema carregado - testando CSS externos!', 'success');
-    });
-    
-    // Função para verificar CSS externos
-    function verificarCSSExternos() {
-        const hasVariables = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-        
-        if (hasVariables) {
-            console.log('✅ CSS externos carregados - variáveis detectadas');
-            console.log('🎨 Variável --color-primary:', hasVariables);
-            mostrarNotificacao('CSS externos carregados com sucesso!', 'success');
-        } else {
-            console.log('⚠️ CSS externos não carregaram - usando fallback');
-            mostrarNotificacao('CSS fallback ativo - arquivos externos não carregaram', 'warning');
-        }
-    }
-    
-    // Listener de Enter para login
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
-            fazerLogin();
-        }
-    });
-    
-    console.log('✅ Sistema migração PASSO 1 carregado!');
-    console.log('🔄 Próximo: PASSO 2 - Integrar módulos JS existentes');
-    </script>
-</body>
-</html> !important; }
-    
-    .login-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .login-box {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        width: 100%;
-        max-width: 400px;
-    }
-    
-    .login-box h2 {
-        text-align: center;
-        margin-bottom: 8px;
-        color: #1e293b;
-        font-size: 24px;
-    }
-    
-    .form-group {
-        margin-bottom: 16px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 500;
-        color: #374151;
-    }
-    
-    .form-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.2s;
-    }
-    
-    .form-group input:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    
-    .btn {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-block;
-        text-align: center;
-        width: 100%;
-        margin-bottom: 8px;
-    }
-    
-    .btn-primary {
-        background: #3b82f6;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background: #2563eb;
-    }
-    
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-    }
-    
-    .btn-danger {
-        background: #ef4444;
-        color: white;
-    }
-    
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    .header {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-    
-    .card {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-    
-    .stat-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .resumo-numero {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-    
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #10b981;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 1000;
-        transform: translateX(400px);
-        transition: transform 0.3s;
-    }
-    
-    .notification.show {
-        transform: translateX(0);
-    }
-    
-    .notification.error { background: #ef4444; }
-    .notification.warning { background: #f59e0b; }
-    .notification.info { background: #3b82f6; }
-    
-    .demo-info {
-        background: #dbeafe;
-        border: 1px solid #3b82f6;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 16px;
-        font-size: 13px;
-    }
-    
-    .status-sistema {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 12px;
-        margin-top: 16px;
-    }
-    
-    .status-item {
-        background: #f8fafc;
-        padding: 12px;
-        border-radius: 6px;
-        border-left: 3px solid #10b981;
-        font-size: 14px;
-    }
-    
-    @media (max-width: 768px) {
-        .header {
-            flex-direction: column;
-            text-align: center;
-        }
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    </style>
-</head>
-<body>
-    <!-- Sistema de Notificações -->
-    <div id="notification" class="notification">
-        <span id="notificationText"></span>
-    </div>
-    
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="login-container">
-        <div class="login-box">
-            <h2>🏗️ Sistema de Gestão</h2>
-            <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
-            
-            <!-- Credenciais de Demo -->
-            <div class="demo-info">
-                <strong>🔧 Acesso Demo:</strong><br>
-                Email: <code>demo@sistema.com</code><br>
-                Senha: <code>123456</code>
-            </div>
-            
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="demo@sistema.com" value="demo@sistema.com">
-            </div>
-            
-            <div class="form-group">
-                <label>Senha</label>
-                <input type="password" id="loginPassword" placeholder="123456" value="123456">
-            </div>
-            
-            <button class="btn btn-primary" onclick="fazerLogin()">
-                Entrar
-            </button>
-            
-            <button class="btn btn-secondary" onclick="loginDemo()">
-                🚀 Login Demo Rápido
-            </button>
-            
-            <div style="margin-top: 16px; text-align: center; font-size: 12px; color: #6b7280;">
-                Sistema v5.1 - Teste Simplificado ✅
-            </div>
-        </div>
-    </div>
-    
-    <!-- Container Principal -->
-    <div class="container hidden" id="mainContainer">
-        <div class="header">
-            <div>
-                <h1>Sistema de Gestão Colaborativo</h1>
-                <p>Obra 292 - Museu Nacional</p>
-                <p style="font-size: 14px; color: #6b7280;">
-                    Sistema v5.1 - FUNCIONANDO ✅
-                    <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
-                </p>
-            </div>
-            <div style="text-align: right;">
-                <p id="dataAtual" style="color: #6b7280;"></p>
-                <div style="margin-top: 8px;">
-                    <button class="btn btn-danger" style="width: auto; margin: 0;" onclick="fazerLogout()">
-                        🚪 Sair
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Dashboard Básico -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #10b981;">5</div>
-                <div>Em Dia</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #f59e0b;">2</div>
-                <div>Atenção</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #ef4444;">1</div>
-                <div>Atraso</div>
-            </div>
-            <div class="stat-card">
-                <div class="resumo-numero" style="color: #8b5cf6;">3</div>
-                <div>Eventos</div>
-            </div>
-        </div>
-        
-        <!-- Status do Sistema -->
-        <div class="card">
-            <h3>📊 Status do Sistema</h3>
-            <div class="status-sistema">
-                <div class="status-item">
-                    <strong>Login:</strong> <span style="color: #10b981;">Funcionando</span>
-                </div>
-                <div class="status-item">
-                    <strong>Interface:</strong> <span style="color: #10b981;">Carregada</span>
-                </div>
-                <div class="status-item">
-                    <strong>CSS:</strong> <span style="color: #10b981;">Integrado</span>
-                </div>
-                <div class="status-item">
-                    <strong>JavaScript:</strong> <span style="color: #10b981;">Ativo</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Próximos Passos -->
-        <div class="card">
-            <h3>🚀 Próximos Passos</h3>
-            <p><strong>✅ Sistema básico funcionando!</strong></p>
-            <p style="margin-top: 8px; color: #6b7280;">
-                Agora podemos trabalhar na integração modular:
-            </p>
-            <ul style="margin-top: 12px; margin-left: 20px; color: #6b7280;">
-                <li>Verificar quais módulos estão funcionais</li>
-                <li>Integrar CSS externos</li>
-                <li>Conectar Firebase</li>
-                <li>Ativar funcionalidades avançadas</li>
-            </ul>
-            
-            <button class="btn btn-primary" onclick="testarConexoes()" style="margin-top: 16px; width: auto;">
-                🔍 Testar Conexões
-            </button>
-        </div>
-    </div>
-
-    <script>
-    // ========== SISTEMA BÁSICO GARANTIDO ==========
-    
-    console.log('🎯 Iniciando sistema simplificado...');
-    
-    // Sistema de notificações
-    function mostrarNotificacao(mensagem, tipo = 'info') {
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notificationText');
-        
-        if (!notification || !notificationText) return;
-        
-        notification.className = 'notification';
-        if (tipo !== 'info') notification.classList.add(tipo);
-        
-        notificationText.textContent = mensagem;
-        notification.classList.add('show');
-        
-        setTimeout(() => notification.classList.remove('show'), 3000);
-        console.log(`📢 ${tipo.toUpperCase()}: ${mensagem}`);
-    }
-    
-    // Funções de autenticação
-    function fazerLogin() {
-        console.log('🔑 Executando login...');
-        
-        const email = document.getElementById('loginEmail')?.value;
-        const senha = document.getElementById('loginPassword')?.value;
-        
-        if (!email || !senha) {
-            mostrarNotificacao('Preencha email e senha!', 'error');
-            return;
         }
         
-        // Login demo
-        if (email === 'demo@sistema.com' && senha === '123456') {
-            mostrarNotificacao('Login realizado com sucesso!', 'success');
-            
-            // Esconder login e mostrar dashboard
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainContainer').classList.remove('hidden');
-            
-            // Atualizar informações do usuário
-            document.getElementById('usuarioInfo').textContent = '👤 Usuário Demo';
-            
-            // Atualizar data
-            atualizarDataAtual();
-            
-            console.log('✅ Login bem-sucedido');
-        } else {
-            mostrarNotificacao('Use: demo@sistema.com / 123456', 'error');
+        function adicionarPessoa() {
+            console.log('⚠️ adicionarPessoa() temporária');
         }
-    }
-    
-    function loginDemo() {
-        console.log('🚀 Login demo rápido...');
-        document.getElementById('loginEmail').value = 'demo@sistema.com';
-        document.getElementById('loginPassword').value = '123456';
-        fazerLogin();
-    }
-    
-    function fazerLogout() {
-        if (!confirm('Tem certeza que deseja sair?')) return;
         
-        console.log('🚪 Fazendo logout...');
-        
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('mainContainer').classList.add('hidden');
-        
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
-        
-        mostrarNotificacao('Logout realizado!', 'success');
-    }
-    
-    function atualizarDataAtual() {
-        const hoje = new Date();
-        const elemento = document.getElementById('dataAtual');
-        if (elemento) {
-            elemento.textContent = hoje.toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-    }
-    
-    function testarConexoes() {
-        mostrarNotificacao('Testando conexões...', 'info');
-        
-        setTimeout(() => {
-            let resultados = [];
+        function toggleRecorrencia() {
+            console.log('⚠️ toggleRecorrencia() temporária');
+            const recorrente = document.getElementById('eventoRecorrente')?.checked;
+            const config = document.getElementById('recorrenciaConfig');
             
-            // Testar se Firebase está disponível
-            if (typeof firebase !== 'undefined') {
-                resultados.push('✅ Firebase carregado');
-            } else {
-                resultados.push('❌ Firebase não disponível');
+            if (recorrente && config) {
+                config.classList.remove('hidden');
+            } else if (config) {
+                config.classList.add('hidden');
             }
-            
-            // Testar estrutura de arquivos
-            resultados.push('✅ Estrutura HTML funcional');
-            resultados.push('✅ CSS integrado');
-            resultados.push('✅ JavaScript ativo');
-            
-            console.log('📊 Resultados dos testes:', resultados);
-            mostrarNotificacao(`Testes concluídos! ${resultados.length} verificações`, 'success');
-            
-            // Mostrar no console
-            resultados.forEach(resultado => console.log(resultado));
-        }, 1000);
-    }
-    
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ DOM carregado');
-        atualizarDataAtual();
-        mostrarNotificacao('Sistema carregado!', 'success');
-    });
-    
-    // Listener de Enter para login
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
-            fazerLogin();
         }
-    });
-    
-    console.log('✅ Sistema simplificado carregado!');
+        
+        function atualizarConfigRecorrencia() {
+            console.log('⚠️ atualizarConfigRecorrencia() temporária');
+        }
+        
+        function abrirSeletorTarefas() {
+            console.log('⚠️ abrirSeletorTarefas() temporária');
+            const modal = document.getElementById('modalSeletorTarefas');
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+        
+        function fecharModalSeletorTarefas() {
+            console.log('⚠️ fecharModalSeletorTarefas() temporária');
+            const modal = document.getElementById('modalSeletorTarefas');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+        
+        function salvarEvento() {
+            console.log('⚠️ salvarEvento() temporária');
+            alert('Sistema em migração - salvarEvento será implementada');
+        }
+        
+        function validarPrazoAtividade() {
+            console.log('⚠️ validarPrazoAtividade() temporária');
+            return true; // Por enquanto sempre válido
+        }
+        
+        function salvarAtividade() {
+            console.log('⚠️ salvarAtividade() temporária');
+            alert('Sistema em migração - salvarAtividade será implementada');
+        }
+        
+        function alternarTipoAgendamento() {
+            console.log('⚠️ alternarTipoAgendamento() temporária');
+            const tipo = document.getElementById('tarefaTipo')?.value;
+            const grupoDia = document.getElementById('grupoDiaSemana');
+            const grupoData = document.getElementById('grupoData');
+            
+            if (tipo === 'semanal' && grupoDia && grupoData) {
+                grupoDia.classList.remove('hidden');
+                grupoData.classList.add('hidden');
+            } else if (tipo === 'data' && grupoDia && grupoData) {
+                grupoDia.classList.add('hidden');
+                grupoData.classList.remove('hidden');
+            }
+        }
+        
+        function salvarTarefa() {
+            console.log('⚠️ salvarTarefa() temporária');
+            alert('Sistema em migração - salvarTarefa será implementada');
+        }
+        
+        function salvarEdicaoTarefa() {
+            console.log('⚠️ salvarEdicaoTarefa() temporária');
+            alert('Sistema em migração - salvarEdicaoTarefa será implementada');
+        }
+        
+        function salvarStatus() {
+            console.log('⚠️ salvarStatus() temporária');
+            alert('Sistema em migração - salvarStatus será implementada');
+        }
+        
+        function salvarFeriado() {
+            console.log('⚠️ salvarFeriado() temporária');
+            alert('Sistema em migração - salvarFeriado será implementada');
+        }
+        
+        function importarDados() {
+            console.log('⚠️ importarDados() temporária');
+            alert('Sistema em migração - importarDados será implementada');
+        }
+        
+        function filtrarTarefasVinculo() {
+            console.log('⚠️ filtrarTarefasVinculo() temporária');
+        }
+        
+        console.log('🔧 Funções temporárias carregadas - sistema funcionando temporariamente');
+        console.log('⚠️ ATENÇÃO: Migre as funções completas para os módulos correspondentes!');
     </script>
 </body>
 </html>
