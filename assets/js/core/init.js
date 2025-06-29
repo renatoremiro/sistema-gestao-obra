@@ -19,15 +19,515 @@ let listenersAtivos = [];
 /**
  * Configuração de inicialização
  */
-const CONFIG_INICIALIZACAO = {
-    timeoutInicializacao: 30000, // 30 segundos
-    tentativasMaximas: 3,
-    intervaloTentativa: 2000, // 2 segundos
-    verificarIntegridade: true,
-    carregarDadosAutomatico: true,
-    iniciarVerificacaoPrazos: true,
-    configurarEventosGlobais: true
-};
+/* ==========================================================================
+   SISTEMA DE TIMEOUTS ADAPTATIVOS - Substituir CONFIG_INICIALIZACAO em init.js
+   ========================================================================== */
+
+/**
+ * Detecção inteligente de ambiente e configuração de timeouts
+ */
+function detectarAmbienteRede() {
+    const conexao = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    // Detectar tipo de ambiente
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const isDev = location.hostname.includes('github.io') || location.hostname.includes('netlify') || location.hostname.includes('vercel');
+    const isProd = !isLocal && !isDev;
+    
+    // Detectar velocidade da conexão
+    let velocidadeConexao = 'rapida';
+    if (conexao) {
+        const effectiveType = conexao.effectiveType;
+        if (effectiveType === 'slow-2g' || effectiveType === '2g') {
+            velocidadeConexao = 'lenta';
+        } else if (effectiveType === '3g') {
+            velocidadeConexao = 'media';
+        }
+    }
+    
+    // Detectar performance do dispositivo
+    const memoriaDisponivel = navigator.deviceMemory || 4; // GB
+    const nucleosCPU = navigator.hardwareConcurrency || 4;
+    
+    let performanceDispositivo = 'alto';
+    if (memoriaDisponivel < 2 || nucleosCPU < 2) {
+        performanceDispositivo = 'baixo';
+    } else if (memoriaDisponivel < 4 || nucleosCPU < 4) {
+        performanceDispositivo = 'medio';
+    }
+    
+    return {
+        ambiente: isLocal ? 'local' : isDev ? 'dev' : 'prod',
+        velocidadeConexao,
+        performanceDispositivo,
+        memoriaDisponivel,
+        nucleosCPU,
+        conexaoInfo: conexao ? {
+            tipo: conexao.type,
+            effectiveType: conexao.effectiveType,
+            downlink: conexao.downlink,
+            rtt: conexao.rtt
+        } : null
+    };
+}
+
+/**
+ * Configuração inteligente de timeouts baseada no ambiente
+ */
+function obterConfiguracaoTimeouts() {
+    const ambiente = detectarAmbienteRede();
+    
+    console.log('🌐 Ambiente detectado:', ambiente);
+    
+    // Multiplicadores baseados no ambiente
+    let multiplicadorBase = 1;
+    
+    // Ajuste por ambiente
+    switch (ambiente.ambiente) {
+        case 'local':
+            multiplicadorBase = 0.5; // Local é mais rápido
+            break;
+        case 'dev':
+            multiplicadorBase = 1.2; // Dev pode ser mais lento
+            break;
+        case 'prod':
+            multiplicadorBase = 1; // Baseline
+            break;
+    }
+    
+    // Ajuste por velocidade de conexão
+    switch (ambiente.velocidadeConexao) {
+        case 'lenta':
+            multiplicadorBase *= 2.5;
+            break;
+        case 'media':
+            multiplicadorBase *= 1.5;
+            break;
+        case 'rapida':
+            multiplicadorBase *= 1;
+            break;
+    }
+    
+    // Ajuste por performance do dispositivo
+    switch (ambiente.performanceDispositivo) {
+        case 'baixo':
+            multiplicadorBase *= 1.8;
+            break;
+        case 'medio':
+            multiplicadorBase *= 1.3;
+            break;
+        case 'alto':
+            multiplicadorBase *= 1;
+            break;
+    }
+    
+    // Timeouts base em milissegundos
+    const timeoutsBase = {
+        inicializacao: 30000,        // 30s baseline
+        autenticacao: 10000,         // 10s baseline
+        carregamentoDados: 15000,    // 15s baseline
+        conexaoFirebase: 8000,       // 8s baseline
+        salvamento: 5000,            // 5s baseline
+        sincronizacao: 12000,        // 12s baseline
+        tentativaRecuperacao: 3000   // 3s baseline
+    };
+    
+    // Aplicar multiplicador
+    const timeoutsFinais = {};
+    Object.entries(timeoutsBase).forEach(([chave, valor]) => {
+        timeoutsFinais[chave] = Math.round(valor * multiplicadorBase);
+    });
+    
+    // Limites mínimos e máximos
+    const limites = {
+        inicializacao: { min: 15000, max: 120000 },    // 15s - 2min
+        autenticacao: { min: 5000, max: 45000 },       // 5s - 45s
+        carregamentoDados: { min: 8000, max: 60000 },  // 8s - 1min
+        conexaoFirebase: { min: 3000, max: 30000 },    // 3s - 30s
+        salvamento: { min: 2000, max: 20000 },         // 2s - 20s
+        sincronizacao: { min: 5000, max: 40000 },      // 5s - 40s
+        tentativaRecuperacao: { min: 1000, max: 10000 } // 1s - 10s
+    };
+    
+    // Aplicar limites
+    Object.entries(timeoutsFinais).forEach(([chave, valor]) => {
+        const limite = limites[chave];
+        if (limite) {
+            timeoutsFinais[chave] = Math.max(limite.min, Math.min(limite.max, valor));
+        }
+    });
+    
+    return {
+        timeouts: timeoutsFinais,
+        ambiente,
+        multiplicador: multiplicadorBase,
+        tentativasMaximas: ambiente.velocidadeConexao === 'lenta' ? 5 : 3,
+        intervaloTentativa: ambiente.velocidadeConexao === 'lenta' ? 3000 : 2000
+    };
+}
+
+/**
+ * Configuração de inicialização MELHORADA com timeouts adaptativos
+ */
+const CONFIG_INICIALIZACAO_INTELIGENTE = (() => {
+    const config = obterConfiguracaoTimeouts();
+    
+    return {
+        // Timeouts adaptativos
+        timeoutInicializacao: config.timeouts.inicializacao,
+        timeoutAutenticacao: config.timeouts.autenticacao,
+        timeoutCarregamentoDados: config.timeouts.carregamentoDados,
+        timeoutConexaoFirebase: config.timeouts.conexaoFirebase,
+        timeoutSalvamento: config.timeouts.salvamento,
+        timeoutSincronizacao: config.timeouts.sincronizacao,
+        timeoutRecuperacao: config.timeouts.tentativaRecuperacao,
+        
+        // Configurações adaptativas
+        tentativasMaximas: config.tentativasMaximas,
+        intervaloTentativa: config.intervaloTentativa,
+        
+        // Flags originais
+        verificarIntegridade: true,
+        carregarDadosAutomatico: true,
+        iniciarVerificacaoPrazos: true,
+        configurarEventosGlobais: true,
+        
+        // Configurações de performance
+        memoriaDisponivel: config.ambiente.memoriaDisponivel,
+        performanceDispositivo: config.ambiente.performanceDispositivo,
+        velocidadeConexao: config.ambiente.velocidadeConexao,
+        
+        // Debug
+        ambiente: config.ambiente.ambiente,
+        multiplicadorTimeout: config.multiplicador,
+        
+        // Configurações específicas por ambiente
+        otimizacoes: {
+            preloadModulos: config.ambiente.performanceDispositivo === 'alto',
+            cacheAgressivo: config.ambiente.velocidadeConexao === 'lenta',
+            compressionGzip: config.ambiente.velocidadeConexao !== 'rapida',
+            batchRequests: config.ambiente.velocidadeConexao === 'lenta'
+        }
+    };
+})();
+
+/**
+ * Função verificarAutenticacao MELHORADA com timeout adaptativo
+ */
+async function verificarAutenticacaoInteligente() {
+    if (!firebase.auth) {
+        throw new Error('Firebase Auth não disponível');
+    }
+
+    const timeoutAuth = CONFIG_INICIALIZACAO_INTELIGENTE.timeoutAutenticacao;
+    console.log(`🔐 Verificando autenticação (timeout: ${timeoutAuth}ms)...`);
+
+    return new Promise((resolve, reject) => {
+        let resolvido = false;
+        
+        const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+            if (resolvido) return;
+            
+            unsubscribe(); // Remove o listener imediatamente
+            resolvido = true;
+            
+            if (user) {
+                // Usuário logado
+                usuarioAtual = user;
+                
+                if (estadoSistema) {
+                    estadoSistema.usuarioEmail = user.email;
+                    estadoSistema.usuarioNome = user.displayName || user.email.split('@')[0];
+                    estadoSistema.usuarioUID = user.uid;
+                }
+
+                console.log('👤 Usuário autenticado:', user.email);
+                resolve({ autenticado: true, usuario: user.email });
+            } else {
+                // Usuário não logado
+                console.log('🔐 Usuário não autenticado');
+                resolve({ autenticado: false });
+            }
+        }, (error) => {
+            if (resolvido) return;
+            
+            resolvido = true;
+            console.error('❌ Erro na verificação de auth:', error);
+            reject(error);
+        });
+
+        // Timeout adaptativo
+        setTimeout(() => {
+            if (resolvido) return;
+            
+            resolvido = true;
+            unsubscribe();
+            
+            const erro = new Error(`Timeout na verificação de autenticação (${timeoutAuth}ms)`);
+            console.warn('⏰ Timeout de autenticação:', erro.message);
+            reject(erro);
+        }, timeoutAuth);
+    });
+}
+
+/**
+ * Função configurarFirebaseInit MELHORADA com timeout adaptativo
+ */
+async function configurarFirebaseInitInteligente() {
+    if (typeof firebase === 'undefined') {
+        throw new Error('Firebase não está disponível');
+    }
+
+    // Verificar se já foi inicializado
+    if (!firebase.apps.length) {
+        throw new Error('Firebase não foi configurado. Execute firebase.js primeiro.');
+    }
+
+    const timeoutConexao = CONFIG_INICIALIZACAO_INTELIGENTE.timeoutConexaoFirebase;
+    console.log(`🔥 Verificando conexão Firebase (timeout: ${timeoutConexao}ms)...`);
+
+    // Verificar conexão com timeout adaptativo
+    const connected = await new Promise((resolve) => {
+        let resolvido = false;
+        
+        const connectedRef = firebase.database().ref('.info/connected');
+        
+        const handleConnection = (snapshot) => {
+            if (resolvido) return;
+            
+            resolvido = true;
+            connectedRef.off('value', handleConnection);
+            resolve(snapshot.val() === true);
+        };
+        
+        connectedRef.on('value', handleConnection);
+        
+        // Timeout adaptativo
+        setTimeout(() => {
+            if (resolvido) return;
+            
+            resolvido = true;
+            connectedRef.off('value', handleConnection);
+            console.warn(`⏰ Timeout de conexão Firebase (${timeoutConexao}ms)`);
+            resolve(false);
+        }, timeoutConexao);
+    });
+
+    if (!connected) {
+        console.warn('⚠️ Firebase offline - modo offline ativado');
+        if (estadoSistema) {
+            estadoSistema.online = false;
+        }
+    } else {
+        console.log('🔥 Firebase conectado com sucesso');
+        if (estadoSistema) {
+            estadoSistema.online = true;
+        }
+    }
+
+    return { conectado: connected, timeoutUsado: timeoutConexao };
+}
+
+/**
+ * Função carregarDadosIniciais MELHORADA com timeout adaptativo
+ */
+async function carregarDadosIniciaisInteligente() {
+    if (!CONFIG_INICIALIZACAO_INTELIGENTE.carregarDadosAutomatico) {
+        console.log('📊 Carregamento automático de dados desabilitado');
+        return { dados: null };
+    }
+
+    const timeoutCarregamento = CONFIG_INICIALIZACAO_INTELIGENTE.timeoutCarregamentoDados;
+    console.log(`📦 Carregando dados (timeout: ${timeoutCarregamento}ms)...`);
+
+    try {
+        // Carregar dados com timeout adaptativo
+        const dadosServidor = await Promise.race([
+            firebase.database().ref('dados').once('value').then(snapshot => snapshot.val()),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(`Timeout carregamento dados (${timeoutCarregamento}ms)`)), timeoutCarregamento)
+            )
+        ]);
+
+        if (dadosServidor) {
+            // Dados encontrados no servidor
+            dados = dadosServidor;
+            console.log('📦 Dados carregados do Firebase');
+            
+            // Verificar integridade se habilitado
+            if (CONFIG_INICIALIZACAO_INTELIGENTE.verificarIntegridade) {
+                const problemas = validarIntegridadeDados();
+                if (problemas.length > 0) {
+                    console.warn('⚠️ Problemas de integridade encontrados:', problemas);
+                }
+            }
+            
+            return { origem: 'firebase', dados: dados, timeoutUsado: timeoutCarregamento };
+        } else {
+            // Nenhum dado no servidor - inicializar dados padrão
+            console.log('🔧 Nenhum dado encontrado - inicializando dados padrão');
+            dados = inicializarDados();
+            
+            // Salvar dados iniciais no Firebase se usuário logado
+            if (usuarioAtual) {
+                await salvarDadosComTimeout(dados);
+                console.log('💾 Dados padrão salvos no Firebase');
+            }
+            
+            return { origem: 'inicializacao', dados: dados, timeoutUsado: timeoutCarregamento };
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar dados:', error);
+        
+        // Fallback para dados padrão
+        console.log('🔄 Fallback: usando dados padrão');
+        dados = inicializarDados();
+        
+        return { origem: 'fallback', dados: dados, erro: error.message, timeoutUsado: timeoutCarregamento };
+    }
+}
+
+/**
+ * Salvamento com timeout adaptativo
+ */
+async function salvarDadosComTimeout(dadosParaSalvar) {
+    const timeoutSalvamento = CONFIG_INICIALIZACAO_INTELIGENTE.timeoutSalvamento;
+    
+    return Promise.race([
+        firebase.database().ref('dados').set(dadosParaSalvar),
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout salvamento (${timeoutSalvamento}ms)`)), timeoutSalvamento)
+        )
+    ]);
+}
+
+/**
+ * Monitoramento inteligente de performance
+ */
+function monitorarPerformanceInteligente() {
+    const config = CONFIG_INICIALIZACAO_INTELIGENTE;
+    const memoria = performance.memory;
+    
+    const stats = {
+        // Informações de memória
+        memoria: memoria ? {
+            usedJSHeapSize: Math.round(memoria.usedJSHeapSize / 1024 / 1024) + 'MB',
+            totalJSHeapSize: Math.round(memoria.totalJSHeapSize / 1024 / 1024) + 'MB',
+            limitJSHeapSize: Math.round(memoria.jsHeapSizeLimit / 1024 / 1024) + 'MB'
+        } : null,
+        
+        // Informações do sistema
+        ambiente: config.ambiente,
+        performanceDispositivo: config.performanceDispositivo,
+        velocidadeConexao: config.velocidadeConexao,
+        memoriaDisponivel: config.memoriaDisponivel + 'GB',
+        
+        // Informações de timing
+        tempoAtivo: Math.round((performance.now() - tempoInicioSistema) / 1000) + 's',
+        timeoutsUsados: {
+            inicializacao: config.timeoutInicializacao + 'ms',
+            autenticacao: config.timeoutAutenticacao + 'ms',
+            carregamentoDados: config.timeoutCarregamentoDados + 'ms'
+        },
+        
+        // Contadores
+        salvamentos: estadoSistema?.contadorSalvamentos || 0,
+        intervalosAtivos: intervalosAtivos.length,
+        listenersAtivos: listenersAtivos.length,
+        
+        // Otimizações ativas
+        otimizacoes: config.otimizacoes
+    };
+
+    // Log apenas se houver problemas
+    if (memoria && memoria.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB
+        console.warn('⚠️ Alto uso de memória detectado:', stats);
+    }
+    
+    // Log se conexão lenta ou dispositivo baixa performance
+    if (config.velocidadeConexao === 'lenta' || config.performanceDispositivo === 'baixo') {
+        console.log('📊 Stats performance (ambiente limitado):', stats);
+    }
+
+    return stats;
+}
+
+/**
+ * Sistema de retry inteligente
+ */
+async function tentarComRetryInteligente(operacao, nomeOperacao) {
+    const config = CONFIG_INICIALIZACAO_INTELIGENTE;
+    const maxTentativas = config.tentativasMaximas;
+    const intervalo = config.intervaloTentativa;
+    
+    for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+        try {
+            console.log(`🔄 ${nomeOperacao} - Tentativa ${tentativa}/${maxTentativas}`);
+            const resultado = await operacao();
+            
+            if (tentativa > 1) {
+                console.log(`✅ ${nomeOperacao} sucesso na tentativa ${tentativa}`);
+            }
+            
+            return resultado;
+        } catch (error) {
+            console.warn(`⚠️ ${nomeOperacao} falhou (tentativa ${tentativa}):`, error.message);
+            
+            if (tentativa === maxTentativas) {
+                throw new Error(`${nomeOperacao} falhou após ${maxTentativas} tentativas: ${error.message}`);
+            }
+            
+            // Esperar antes da próxima tentativa
+            await new Promise(resolve => setTimeout(resolve, intervalo * tentativa));
+        }
+    }
+}
+
+/**
+ * Função de debug para timeouts
+ */
+function debugTimeouts() {
+    const config = CONFIG_INICIALIZACAO_INTELIGENTE;
+    
+    console.group('⏰ DEBUG TIMEOUTS INTELIGENTES');
+    console.log('🌐 Ambiente:', config.ambiente);
+    console.log('📱 Performance dispositivo:', config.performanceDispositivo);
+    console.log('🌐 Velocidade conexão:', config.velocidadeConexao);
+    console.log('💾 Memória disponível:', config.memoriaDisponivel);
+    console.log('⚡ Multiplicador:', config.multiplicadorTimeout);
+    console.log('🔧 Timeouts configurados:', {
+        inicializacao: config.timeoutInicializacao + 'ms',
+        autenticacao: config.timeoutAutenticacao + 'ms',
+        carregamentoDados: config.timeoutCarregamentoDados + 'ms',
+        conexaoFirebase: config.timeoutConexaoFirebase + 'ms'
+    });
+    console.log('🔄 Tentativas máximas:', config.tentativasMaximas);
+    console.log('🎯 Otimizações ativas:', config.otimizacoes);
+    console.groupEnd();
+}
+
+// Substituir as configurações e funções originais
+if (typeof window !== 'undefined') {
+    // Substituir configuração global
+    window.CONFIG_INICIALIZACAO = CONFIG_INICIALIZACAO_INTELIGENTE;
+    
+    // Substituir funções com timeouts
+    window.verificarAutenticacao = verificarAutenticacaoInteligente;
+    window.configurarFirebaseInit = configurarFirebaseInitInteligente;
+    window.carregarDadosIniciais = carregarDadosIniciaisInteligente;
+    window.monitorarPerformance = monitorarPerformanceInteligente;
+    
+    // Novas funções
+    window.detectarAmbienteRede = detectarAmbienteRede;
+    window.obterConfiguracaoTimeouts = obterConfiguracaoTimeouts;
+    window.salvarDadosComTimeout = salvarDadosComTimeout;
+    window.tentarComRetryInteligente = tentarComRetryInteligente;
+    window.debugTimeouts = debugTimeouts;
+    
+    console.log('⏰ Sistema de timeouts adaptativos carregado!');
+    console.log(`🎯 Configuração atual:`, CONFIG_INICIALIZACAO_INTELIGENTE.ambiente, 
+                `- Auth timeout: ${CONFIG_INICIALIZACAO_INTELIGENTE.timeoutAutenticacao}ms`);
+}
 
 /**
  * Sequência de inicialização do sistema

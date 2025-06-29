@@ -266,40 +266,637 @@ function tratarErroLogin(error) {
     }
 }
 
+/* ==========================================================================
+   SISTEMA DE REGISTRO MODERNO - Substituir em auth.js
+   ========================================================================== */
+
 /**
- * Função para mostrar o registro de novo usuário - MELHORADA
+ * Estado do formulário de registro
+ */
+let estadoRegistro = {
+    etapaAtual: 1,
+    camposValidados: {},
+    dadosFormulario: {},
+    validandoEmail: false
+};
+
+/**
+ * Função principal para mostrar o registro moderno - SUBSTITUI a função original
  */
 function mostrarRegistro() {
-    // TODO: Implementar modal responsivo (próxima prioridade)
-    // Por enquanto mantém prompts mas com validação melhorada
+    console.log('📝 Abrindo modal de registro moderno');
+    
+    // Resetar estado
+    resetarEstadoRegistro();
+    
+    // Mostrar modal
+    const modal = document.getElementById('modalRegistro');
+    if (modal) {
+        modal.classList.add('active');
+        
+        // Focar no primeiro campo
+        setTimeout(() => {
+            const emailInput = document.getElementById('registroEmail');
+            if (emailInput) emailInput.focus();
+        }, 300);
+        
+        // Configurar listeners
+        configurarListenersRegistro();
+    } else {
+        console.error('❌ Modal de registro não encontrado');
+        // Fallback para o sistema antigo
+        mostrarRegistroLegado();
+    }
+}
+
+/**
+ * Resetar estado do formulário
+ */
+function resetarEstadoRegistro() {
+    estadoRegistro = {
+        etapaAtual: 1,
+        camposValidados: {},
+        dadosFormulario: {},
+        validandoEmail: false
+    };
+    
+    // Limpar formulário
+    const form = document.getElementById('formRegistro');
+    if (form) form.reset();
+    
+    // Resetar etapas
+    mostrarEtapa(1);
+    
+    // Limpar validações
+    limparValidacoes();
+}
+
+/**
+ * Configurar listeners do formulário
+ */
+function configurarListenersRegistro() {
+    // Listener para Enter
+    document.addEventListener('keydown', function handleEnterRegistro(e) {
+        if (e.key === 'Enter') {
+            const modal = document.getElementById('modalRegistro');
+            if (modal && modal.classList.contains('active')) {
+                e.preventDefault();
+                
+                if (estadoRegistro.etapaAtual === 1) {
+                    proximaEtapa();
+                } else {
+                    finalizarRegistro();
+                }
+            }
+        }
+        
+        // Remover listener quando modal fechar
+        if (!document.getElementById('modalRegistro')?.classList.contains('active')) {
+            document.removeEventListener('keydown', handleEnterRegistro);
+        }
+    });
+    
+    // Listener para mudança de cargo
+    const selectCargo = document.getElementById('registroCargo');
+    if (selectCargo) {
+        selectCargo.addEventListener('change', function() {
+            const grupoOutro = document.getElementById('grupoCargoOutro');
+            if (this.value === 'outro') {
+                grupoOutro.style.display = 'block';
+                document.getElementById('registroCargoOutro').focus();
+            } else {
+                grupoOutro.style.display = 'none';
+            }
+        });
+    }
+}
+
+/**
+ * Validação em tempo real de campos
+ */
+function validarCampoTempo(campoId) {
+    const campo = document.getElementById(campoId);
+    const valor = campo.value;
+    let validacao = { valido: false, mensagem: '', icone: '' };
+    
+    switch (campoId) {
+        case 'registroEmail':
+            validacao = validarEmailTempo(valor);
+            break;
+        case 'registroSenha':
+            validacao = validarSenhaTempo(valor);
+            atualizarForcaSenha(valor);
+            break;
+        case 'registroConfirmarSenha':
+            const senhaOriginal = document.getElementById('registroSenha').value;
+            validacao = validarConfirmacaoSenha(valor, senhaOriginal);
+            break;
+        case 'registroNome':
+            validacao = validarNomeTempo(valor);
+            break;
+        case 'registroCargo':
+            validacao = validarCargoTempo(valor);
+            break;
+    }
+    
+    // Aplicar resultado da validação
+    aplicarValidacao(campoId, validacao);
+    
+    // Atualizar estado
+    estadoRegistro.camposValidados[campoId] = validacao.valido;
+    estadoRegistro.dadosFormulario[campoId] = valor;
+    
+    // Atualizar botões
+    atualizarBotoesEtapa();
+}
+
+/**
+ * Validações específicas
+ */
+function validarEmailTempo(email) {
+    if (!email) {
+        return { valido: false, mensagem: 'Email é obrigatório', icone: '' };
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return { valido: false, mensagem: 'Email inválido', icone: '❌' };
+    }
+    
+    // Verificar domínios comuns
+    const dominiosComuns = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
+    const dominio = email.split('@')[1];
+    
+    if (dominiosComuns.includes(dominio)) {
+        return { valido: true, mensagem: 'Email válido', icone: '✅' };
+    }
+    
+    return { valido: true, mensagem: 'Email corporativo detectado', icone: '🏢' };
+}
+
+function validarSenhaTempo(senha) {
+    if (!senha) {
+        return { valido: false, mensagem: 'Senha é obrigatória', icone: '' };
+    }
+    
+    if (senha.length < 6) {
+        return { valido: false, mensagem: 'Mínimo 6 caracteres', icone: '❌' };
+    }
+    
+    if (senha.length < 8) {
+        return { valido: true, mensagem: 'Senha fraca mas aceita', icone: '⚠️' };
+    }
+    
+    const temNumero = /\d/.test(senha);
+    const temMaiuscula = /[A-Z]/.test(senha);
+    const temMinuscula = /[a-z]/.test(senha);
+    const temEspecial = /[!@#$%^&*]/.test(senha);
+    
+    const criterios = [temNumero, temMaiuscula, temMinuscula, temEspecial].filter(Boolean).length;
+    
+    if (criterios >= 3) {
+        return { valido: true, mensagem: 'Senha forte', icone: '🔒' };
+    }
+    
+    return { valido: true, mensagem: 'Senha média', icone: '⚡' };
+}
+
+function validarConfirmacaoSenha(confirmacao, senhaOriginal) {
+    if (!confirmacao) {
+        return { valido: false, mensagem: 'Confirme sua senha', icone: '' };
+    }
+    
+    if (confirmacao !== senhaOriginal) {
+        return { valido: false, mensagem: 'Senhas não coincidem', icone: '❌' };
+    }
+    
+    return { valido: true, mensagem: 'Senhas coincidem', icone: '✅' };
+}
+
+function validarNomeTempo(nome) {
+    if (!nome) {
+        return { valido: false, mensagem: 'Nome é obrigatório', icone: '' };
+    }
+    
+    if (nome.length < 2) {
+        return { valido: false, mensagem: 'Nome muito curto', icone: '❌' };
+    }
+    
+    const nomeCompleto = nome.trim().split(' ').length >= 2;
+    
+    if (!nomeCompleto) {
+        return { valido: true, mensagem: 'Inclua seu sobrenome', icone: '⚠️' };
+    }
+    
+    return { valido: true, mensagem: 'Nome válido', icone: '✅' };
+}
+
+function validarCargoTempo(cargo) {
+    if (!cargo) {
+        return { valido: false, mensagem: 'Selecione seu cargo', icone: '' };
+    }
+    
+    return { valido: true, mensagem: 'Cargo selecionado', icone: '✅' };
+}
+
+/**
+ * Aplicar resultado da validação no campo
+ */
+function aplicarValidacao(campoId, validacao) {
+    const campo = document.getElementById(campoId);
+    const mensagem = document.getElementById(`${campoId}Validation`);
+    const icone = document.getElementById(`${campoId}Icon`);
+    
+    if (!campo || !mensagem || !icone) return;
+    
+    // Limpar classes anteriores
+    campo.classList.remove('valid', 'invalid');
+    mensagem.classList.remove('error', 'success');
+    
+    // Aplicar nova validação
+    if (campo.value) {
+        if (validacao.valido) {
+            campo.classList.add('valid');
+            mensagem.classList.add('success');
+            campo.setAttribute('aria-invalid', 'false');
+        } else {
+            campo.classList.add('invalid');
+            mensagem.classList.add('error');
+            campo.setAttribute('aria-invalid', 'true');
+        }
+    }
+    
+    mensagem.textContent = validacao.mensagem;
+    icone.textContent = validacao.icone;
+}
+
+/**
+ * Atualizar indicador de força da senha
+ */
+function atualizarForcaSenha(senha) {
+    const strengthFill = document.getElementById('strengthFill');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (!strengthFill || !strengthText) return;
+    
+    if (!senha) {
+        strengthFill.style.width = '0%';
+        strengthFill.style.background = '#e5e7eb';
+        strengthText.textContent = 'Digite uma senha';
+        return;
+    }
+    
+    let score = 0;
+    let feedback = [];
+    
+    // Critérios de força
+    if (senha.length >= 8) score += 20; else feedback.push('8+ caracteres');
+    if (/[a-z]/.test(senha)) score += 20; else feedback.push('minúscula');
+    if (/[A-Z]/.test(senha)) score += 20; else feedback.push('maiúscula');
+    if (/\d/.test(senha)) score += 20; else feedback.push('número');
+    if (/[!@#$%^&*]/.test(senha)) score += 20; else feedback.push('especial');
+    
+    let cor, texto;
+    
+    if (score < 40) {
+        cor = '#ef4444';
+        texto = `Fraca (falta: ${feedback.join(', ')})`;
+    } else if (score < 60) {
+        cor = '#f59e0b';
+        texto = `Média (falta: ${feedback.join(', ')})`;
+    } else if (score < 80) {
+        cor = '#3b82f6';
+        texto = 'Boa (quase lá!)';
+    } else {
+        cor = '#10b981';
+        texto = 'Forte 🔒';
+    }
+    
+    strengthFill.style.width = `${score}%`;
+    strengthFill.style.background = cor;
+    strengthText.textContent = texto;
+}
+
+/**
+ * Limpar todas as validações
+ */
+function limparValidacoes() {
+    const campos = ['registroEmail', 'registroSenha', 'registroConfirmarSenha', 'registroNome', 'registroCargo'];
+    
+    campos.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        const mensagem = document.getElementById(`${campoId}Validation`);
+        const icone = document.getElementById(`${campoId}Icon`);
+        
+        if (campo) {
+            campo.classList.remove('valid', 'invalid');
+            campo.removeAttribute('aria-invalid');
+        }
+        if (mensagem) {
+            mensagem.textContent = '';
+            mensagem.classList.remove('error', 'success');
+        }
+        if (icone) icone.textContent = '';
+    });
+    
+    // Limpar força da senha
+    atualizarForcaSenha('');
+}
+
+/**
+ * Controle de etapas
+ */
+function mostrarEtapa(numeroEtapa) {
+    // Esconder todas as etapas
+    document.querySelectorAll('.form-step').forEach(etapa => {
+        etapa.classList.remove('active');
+    });
+    
+    // Mostrar etapa atual
+    const etapaAtual = document.getElementById(`step${numeroEtapa}`);
+    if (etapaAtual) {
+        etapaAtual.classList.add('active');
+    }
+    
+    // Atualizar indicadores
+    atualizarIndicadoresEtapa(numeroEtapa);
+    
+    estadoRegistro.etapaAtual = numeroEtapa;
+}
+
+function atualizarIndicadoresEtapa(numeroEtapa) {
+    [1, 2].forEach(numero => {
+        const indicador = document.getElementById(`stepIndicator${numero}`);
+        if (indicador) {
+            indicador.classList.remove('active', 'completed');
+            
+            if (numero < numeroEtapa) {
+                indicador.classList.add('completed');
+            } else if (numero === numeroEtapa) {
+                indicador.classList.add('active');
+            }
+        }
+    });
+}
+
+function proximaEtapa() {
+    // Validar campos da etapa 1
+    const camposEtapa1 = ['registroEmail', 'registroSenha', 'registroConfirmarSenha'];
+    
+    let todosValidos = true;
+    camposEtapa1.forEach(campoId => {
+        validarCampoTempo(campoId);
+        if (!estadoRegistro.camposValidados[campoId]) {
+            todosValidos = false;
+        }
+    });
+    
+    if (!todosValidos) {
+        if (window.Notifications) {
+            window.Notifications.erro('Corrija os campos destacados antes de continuar');
+        }
+        
+        // Focar no primeiro campo inválido
+        const primeiroInvalido = camposEtapa1.find(campoId => !estadoRegistro.camposValidados[campoId]);
+        if (primeiroInvalido) {
+            document.getElementById(primeiroInvalido)?.focus();
+        }
+        return;
+    }
+    
+    mostrarEtapa(2);
+    
+    // Focar no primeiro campo da próxima etapa
+    setTimeout(() => {
+        document.getElementById('registroNome')?.focus();
+    }, 300);
+}
+
+function etapaAnterior() {
+    mostrarEtapa(1);
+    
+    setTimeout(() => {
+        document.getElementById('registroEmail')?.focus();
+    }, 300);
+}
+
+function atualizarBotoesEtapa() {
+    if (estadoRegistro.etapaAtual === 1) {
+        const botao = document.getElementById('btnProximaEtapa');
+        const camposEtapa1 = ['registroEmail', 'registroSenha', 'registroConfirmarSenha'];
+        const todosValidos = camposEtapa1.every(campoId => estadoRegistro.camposValidados[campoId]);
+        
+        if (botao) {
+            botao.disabled = !todosValidos;
+            botao.classList.toggle('btn-primary', todosValidos);
+            botao.classList.toggle('btn-secondary', !todosValidos);
+        }
+    } else {
+        const botao = document.getElementById('btnFinalizarRegistro');
+        const camposEtapa2 = ['registroNome', 'registroCargo'];
+        const todosValidos = camposEtapa2.every(campoId => estadoRegistro.camposValidados[campoId]);
+        
+        if (botao) {
+            botao.disabled = !todosValidos;
+        }
+    }
+}
+
+/**
+ * Finalizar registro
+ */
+async function finalizarRegistro() {
+    // Validar todos os campos obrigatórios
+    const camposObrigatorios = ['registroEmail', 'registroSenha', 'registroConfirmarSenha', 'registroNome', 'registroCargo'];
+    
+    let todosValidos = true;
+    camposObrigatorios.forEach(campoId => {
+        validarCampoTempo(campoId);
+        if (!estadoRegistro.camposValidados[campoId]) {
+            todosValidos = false;
+        }
+    });
+    
+    if (!todosValidos) {
+        if (window.Notifications) {
+            window.Notifications.erro('Preencha todos os campos obrigatórios');
+        }
+        return;
+    }
+    
+    // Coletar dados do formulário
+    const email = document.getElementById('registroEmail').value;
+    const senha = document.getElementById('registroSenha').value;
+    const nome = document.getElementById('registroNome').value;
+    let cargo = document.getElementById('registroCargo').value;
+    const area = document.getElementById('registroArea').value;
+    
+    // Se cargo é "outro", usar o campo especificado
+    if (cargo === 'outro') {
+        const cargoEspecifico = document.getElementById('registroCargoOutro').value;
+        cargo = cargoEspecifico || 'Não especificado';
+    }
+    
+    console.log('📝 Criando nova conta para:', email);
+    
+    // Mostrar loading
+    const botao = document.getElementById('btnFinalizarRegistro');
+    const loading = document.getElementById('loadingRegistro');
+    if (botao && loading) {
+        botao.disabled = true;
+        loading.classList.remove('hidden');
+    }
+    
+    try {
+        // Garantir métodos inicializados
+        if (!metodosAuth) {
+            if (!inicializarMetodosAuth()) {
+                throw new Error('Sistema de autenticação não disponível');
+            }
+        }
+        
+        if (window.Notifications) {
+            window.Notifications.info('Criando sua conta...');
+        }
+        
+        // Criar conta no Firebase
+        const userCredential = await metodosAuth.signUp(email, senha);
+        
+        // Atualizar perfil com informações completas
+        const profileData = {
+            displayName: nome,
+            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=3b82f6&color=fff`
+        };
+        
+        await metodosAuth.updateProfile(userCredential.user, profileData);
+        
+        // Salvar dados adicionais no banco (se necessário)
+        if (typeof salvarDadosUsuario === 'function') {
+            await salvarDadosUsuario(userCredential.user.uid, {
+                nome,
+                cargo,
+                area,
+                email,
+                dataCriacao: new Date().toISOString()
+            });
+        }
+        
+        console.log('✅ Conta criada com sucesso');
+        
+        if (window.Notifications) {
+            window.Notifications.sucesso(`🎉 Bem-vindo, ${nome}! Conta criada com sucesso!`);
+        }
+        
+        // Fechar modal
+        fecharModal('modalRegistro');
+        
+        // O sistema será inicializado automaticamente pelo authStateChanged
+        
+    } catch (error) {
+        console.error('❌ Erro ao criar conta:', error);
+        
+        let mensagem = 'Erro ao criar conta';
+        if (error.code === 'auth/email-already-in-use') {
+            mensagem = 'Este email já está em uso!';
+        } else if (error.code === 'auth/weak-password') {
+            mensagem = 'Senha muito fraca!';
+        } else if (error.code === 'auth/invalid-email') {
+            mensagem = 'Email inválido!';
+        } else if (error.code === 'auth/network-request-failed') {
+            mensagem = 'Erro de conexão. Verifique sua internet.';
+        } else {
+            mensagem = `Erro: ${error.message}`;
+        }
+        
+        if (window.Notifications) {
+            window.Notifications.erro(mensagem);
+        }
+        
+        // Voltar para primeira etapa se erro de email
+        if (error.code === 'auth/email-already-in-use' || error.code === 'auth/invalid-email') {
+            mostrarEtapa(1);
+            setTimeout(() => {
+                document.getElementById('registroEmail')?.focus();
+            }, 300);
+        }
+        
+    } finally {
+        // Esconder loading
+        if (botao && loading) {
+            botao.disabled = false;
+            loading.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * Funções auxiliares
+ */
+function toggleSenhaVisibilidade(inputId) {
+    const input = document.getElementById(inputId);
+    const botao = input?.nextElementSibling;
+    
+    if (input && botao) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            botao.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            botao.textContent = '👁️';
+        }
+    }
+}
+
+function mostrarTermos() {
+    if (window.Notifications) {
+        window.Notifications.info('Termos de uso: Use o sistema com responsabilidade e respeite os dados da equipe.');
+    }
+}
+
+/**
+ * Função de fallback para o sistema antigo
+ */
+function mostrarRegistroLegado() {
+    console.log('⚠️ Usando sistema de registro legado');
     
     const email = prompt('Digite seu email:');
     if (!email || !email.trim()) {
-        mostrarNotificacao('Email é obrigatório!', 'error');
+        if (window.Notifications) {
+            window.Notifications.erro('Email é obrigatório!');
+        }
         return;
     }
     
     // Validar formato do email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        mostrarNotificacao('Email inválido!', 'error');
+        if (window.Notifications) {
+            window.Notifications.erro('Email inválido!');
+        }
         return;
     }
     
     const senha = prompt('Digite uma senha (mínimo 6 caracteres):');
     if (!senha || senha.length < 6) {
-        mostrarNotificacao('Senha deve ter pelo menos 6 caracteres!', 'error');
+        if (window.Notifications) {
+            window.Notifications.erro('Senha deve ter pelo menos 6 caracteres!');
+        }
         return;
     }
     
     const nome = prompt('Digite seu nome:');
     if (!nome || !nome.trim()) {
-        mostrarNotificacao('Nome é obrigatório!', 'error');
+        if (window.Notifications) {
+            window.Notifications.erro('Nome é obrigatório!');
+        }
         return;
     }
     
-    console.log('📝 Criando nova conta para:', email);
-    mostrarNotificacao('Criando conta...', 'info');
+    console.log('📝 Criando nova conta (modo legado) para:', email);
+    
+    if (window.Notifications) {
+        window.Notifications.info('Criando conta...');
+    }
     
     // Garantir métodos inicializados
     if (!metodosAuth) {
@@ -315,18 +912,22 @@ function mostrarRegistro() {
             });
         })
         .then(() => {
-            console.log('✅ Conta criada com sucesso');
-            mostrarNotificacao('Conta criada com sucesso! Fazendo login...', 'success');
+            console.log('✅ Conta criada com sucesso (modo legado)');
+            if (window.Notifications) {
+                window.Notifications.sucesso('Conta criada com sucesso! Fazendo login...');
+            }
             
             // Preencher campos e fazer login automático
             setTimeout(() => {
-                document.getElementById('loginEmail').value = email;
-                document.getElementById('loginPassword').value = senha;
+                const emailInput = document.getElementById('loginEmail');
+                const senhaInput = document.getElementById('loginPassword');
+                if (emailInput) emailInput.value = email;
+                if (senhaInput) senhaInput.value = senha;
                 fazerLogin();
             }, 1500);
         })
         .catch((error) => {
-            console.error('❌ Erro ao criar conta:', error);
+            console.error('❌ Erro ao criar conta (modo legado):', error);
             
             let mensagem = 'Erro ao criar conta';
             if (error.code === 'auth/email-already-in-use') {
@@ -337,10 +938,24 @@ function mostrarRegistro() {
                 mensagem = 'Email inválido!';
             }
             
-            mostrarNotificacao(mensagem, 'error');
+            if (window.Notifications) {
+                window.Notifications.erro(mensagem);
+            }
         });
 }
 
+// Exportar para uso global
+if (typeof window !== 'undefined') {
+    window.mostrarRegistroModerno = mostrarRegistro;
+    window.validarCampoTempo = validarCampoTempo;
+    window.proximaEtapa = proximaEtapa;
+    window.etapaAnterior = etapaAnterior;
+    window.finalizarRegistro = finalizarRegistro;
+    window.toggleSenhaVisibilidade = toggleSenhaVisibilidade;
+    window.mostrarTermos = mostrarTermos;
+    
+    console.log('✅ Sistema de registro moderno carregado');
+}
 /**
  * Função para fazer logout - CORRIGIDA
  */

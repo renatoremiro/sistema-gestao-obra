@@ -669,7 +669,502 @@
             </div>
         </div>
     </div>
+    <!-- Modal de Registro Moderno - Adicionar ao index.html após modal modalFeriado -->
+<div id="modalRegistro" class="modal">
+    <div class="modal-content modal-registro">
+        <div class="modal-header">
+            <h3>🚀 Criar Nova Conta</h3>
+            <span class="modal-close" onclick="fecharModal('modalRegistro')">&times;</span>
+        </div>
+        
+        <form id="formRegistro" onsubmit="return false;">
+            <div class="form-step active" id="step1">
+                <div class="form-group">
+                    <label for="registroEmail">
+                        📧 Email <span class="required">*</span>
+                    </label>
+                    <input type="email" id="registroEmail" 
+                           placeholder="seu@email.com" 
+                           autocomplete="email"
+                           oninput="validarCampoTempo('registroEmail')"
+                           required>
+                    <div class="field-validation">
+                        <span class="validation-message" id="registroEmailValidation"></span>
+                        <span class="validation-icon" id="registroEmailIcon"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registroSenha">
+                        🔒 Senha <span class="required">*</span>
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" id="registroSenha" 
+                               placeholder="Mínimo 6 caracteres" 
+                               autocomplete="new-password"
+                               oninput="validarCampoTempo('registroSenha')"
+                               required>
+                        <button type="button" class="toggle-password" onclick="toggleSenhaVisibilidade('registroSenha')">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="field-validation">
+                        <span class="validation-message" id="registroSenhaValidation"></span>
+                        <span class="validation-icon" id="registroSenhaIcon"></span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <span class="strength-text" id="strengthText">Digite uma senha</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registroConfirmarSenha">
+                        🔒 Confirmar Senha <span class="required">*</span>
+                    </label>
+                    <input type="password" id="registroConfirmarSenha" 
+                           placeholder="Digite a senha novamente" 
+                           autocomplete="new-password"
+                           oninput="validarCampoTempo('registroConfirmarSenha')"
+                           required>
+                    <div class="field-validation">
+                        <span class="validation-message" id="registroConfirmarSenhaValidation"></span>
+                        <span class="validation-icon" id="registroConfirmarSenhaIcon"></span>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary btn-next" 
+                        onclick="proximaEtapa()" id="btnProximaEtapa">
+                    Próximo →
+                </button>
+            </div>
+            
+            <div class="form-step" id="step2">
+                <div class="form-group">
+                    <label for="registroNome">
+                        👤 Nome Completo <span class="required">*</span>
+                    </label>
+                    <input type="text" id="registroNome" 
+                           placeholder="Seu nome completo" 
+                           autocomplete="name"
+                           oninput="validarCampoTempo('registroNome')"
+                           required>
+                    <div class="field-validation">
+                        <span class="validation-message" id="registroNomeValidation"></span>
+                        <span class="validation-icon" id="registroNomeIcon"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registroCargo">
+                        💼 Cargo/Função <span class="required">*</span>
+                    </label>
+                    <select id="registroCargo" 
+                            onchange="validarCampoTempo('registroCargo')"
+                            required>
+                        <option value="">Selecione seu cargo...</option>
+                        <option value="Coordenador">🎯 Coordenador</option>
+                        <option value="Engenheiro">⚙️ Engenheiro</option>
+                        <option value="Arquiteto">🏗️ Arquiteto</option>
+                        <option value="Técnico">🔧 Técnico</option>
+                        <option value="Administrativo">📋 Administrativo</option>
+                        <option value="Estagiário">📚 Estagiário</option>
+                        <option value="Consultor">💡 Consultor</option>
+                        <option value="Diretor">👑 Diretor</option>
+                        <option value="outro">➕ Outro</option>
+                    </select>
+                    <div class="field-validation">
+                        <span class="validation-message" id="registroCargoValidation"></span>
+                        <span class="validation-icon" id="registroCargoIcon"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="grupoCargoOutro" style="display: none;">
+                    <label for="registroCargoOutro">
+                        ✏️ Especifique seu cargo
+                    </label>
+                    <input type="text" id="registroCargoOutro" 
+                           placeholder="Digite seu cargo específico">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registroArea">
+                        🏢 Área de Atuação
+                    </label>
+                    <select id="registroArea">
+                        <option value="">Selecione uma área (opcional)...</option>
+                        <option value="Estrutura">🏗️ Estrutura</option>
+                        <option value="Instalações">⚡ Instalações</option>
+                        <option value="Acabamentos">🎨 Acabamentos</option>
+                        <option value="Paisagismo">🌿 Paisagismo</option>
+                        <option value="Administração">📊 Administração</option>
+                        <option value="Qualidade">✅ Qualidade</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="etapaAnterior()">
+                        ← Voltar
+                    </button>
+                    <button type="button" class="btn btn-success" 
+                            onclick="finalizarRegistro()" id="btnFinalizarRegistro">
+                        <span class="loading hidden" id="loadingRegistro"></span>
+                        ✨ Criar Conta
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="modal-footer">
+            <div class="steps-indicator">
+                <div class="step active" id="stepIndicator1">1</div>
+                <div class="step-line"></div>
+                <div class="step" id="stepIndicator2">2</div>
+            </div>
+            
+            <p class="terms-text">
+                Ao criar sua conta, você concorda com os 
+                <a href="#" onclick="mostrarTermos()">termos de uso</a> 
+                do sistema.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* === Modal Registro Moderno === */
+.modal-registro {
+    max-width: 480px;
+    width: 90%;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-close {
+    font-size: 24px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: white;
+}
+
+.form-step {
+    padding: 24px;
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+    font-size: 14px;
+}
+
+.required {
+    color: #ef4444;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #ffffff;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #6b7280;
+    padding: 4px;
+}
+
+.field-validation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    min-height: 20px;
+}
+
+.validation-message {
+    font-size: 12px;
+    color: #6b7280;
+    flex: 1;
+}
+
+.validation-message.error {
+    color: #ef4444;
+}
+
+.validation-message.success {
+    color: #10b981;
+}
+
+.validation-icon {
+    font-size: 16px;
+    margin-left: 8px;
+}
+
+.password-strength {
+    margin-top: 8px;
+}
+
+.strength-bar {
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.strength-text {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    display: block;
+}
+
+.btn-next {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.form-actions .btn {
+    flex: 1;
+    padding: 14px;
+    font-weight: 600;
+}
+
+.modal-footer {
+    padding: 20px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.steps-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.step.active {
+    background: #3b82f6;
+    color: white;
+}
+
+.step.completed {
+    background: #10b981;
+    color: white;
+}
+
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: #e5e7eb;
+    margin: 0 8px;
+}
+
+.terms-text {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.terms-text a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.terms-text a:hover {
+    text-decoration: underline;
+}
+
+.loading {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+/* Input states */
+.form-group input.valid {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.form-group input.invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.form-group select.valid {
+    border-color: #10b981;
+}
+
+.form-group select.invalid {
+    border-color: #ef4444;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+    .modal-registro {
+        width: 95%;
+        margin: 20px auto;
+    }
     
+    .modal-header {
+        padding: 20px 20px 12px;
+    }
+    
+    .form-step {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 16px 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Animação de carregamento */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Efeito de foco aprimorado */
+.form-group input:focus-visible,
+.form-group select:focus-visible {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estado desabilitado */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Melhor acessibilidade */
+.form-group input[aria-invalid="true"] {
+    border-color: #ef4444;
+}
+
+.form-group input[aria-invalid="false"] {
+    border-color: #10b981;
+}
+</style>
+
     <!-- ✅ FIREBASE SCRIPTS ATUALIZADOS PARA VERSÃO 11.9.1 -->
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database-compat.js"></script>
