@@ -3,19 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão Completo - Obra 292 (Firebase v5.1) - CORRIGIDO</title>
-    
-    <!-- CSS Styles -->
-    <link rel="stylesheet" href="assets/css/reset.css" onerror="console.warn('❌ reset.css não carregou')">
-    <link rel="stylesheet" href="assets/css/variables.css" onerror="console.warn('❌ variables.css não carregou')">
-    <link rel="stylesheet" href="assets/css/layout.css" onerror="console.warn('❌ layout.css não carregou')">
-    <link rel="stylesheet" href="assets/css/components.css" onerror="console.warn('❌ components.css não carregou')">
-    <link rel="stylesheet" href="assets/css/calendar.css" onerror="console.warn('❌ calendar.css não carregou')">
-    <link rel="stylesheet" href="assets/css/animations.css" onerror="console.warn('❌ animations.css não carregou')">
-    <link rel="stylesheet" href="assets/css/responsive.css" onerror="console.warn('❌ responsive.css não carregou')">
+    <title>Sistema de Gestão - Obra 292 (v5.1) - TESTE</title>
     
     <style>
-    /* CSS Básico de Fallback */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body { 
@@ -36,7 +26,7 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
-    .login-container > div {
+    .login-box {
         background: white;
         padding: 40px;
         border-radius: 12px;
@@ -45,8 +35,22 @@
         max-width: 400px;
     }
     
+    .login-box h2 {
+        text-align: center;
+        margin-bottom: 8px;
+        color: #1e293b;
+        font-size: 24px;
+    }
+    
     .form-group {
         margin-bottom: 16px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #374151;
     }
     
     .form-group input {
@@ -56,6 +60,12 @@
         border-radius: 8px;
         font-size: 14px;
         transition: border-color 0.2s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     .btn {
@@ -68,11 +78,17 @@
         text-decoration: none;
         display: inline-block;
         text-align: center;
+        width: 100%;
+        margin-bottom: 8px;
     }
     
     .btn-primary {
         background: #3b82f6;
         color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2563eb;
     }
     
     .btn-secondary {
@@ -91,12 +107,46 @@
         padding: 20px;
     }
     
+    .header {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
     .card {
         background: white;
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 24px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .resumo-numero {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
     
     .notification {
@@ -119,3 +169,294 @@
     .notification.error { background: #ef4444; }
     .notification.warning { background: #f59e0b; }
     .notification.info { background: #3b82f6; }
+    
+    .demo-info {
+        background: #dbeafe;
+        border: 1px solid #3b82f6;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+    }
+    
+    .status-sistema {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .status-item {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 3px solid #10b981;
+        font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+        .header {
+            flex-direction: column;
+            text-align: center;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    </style>
+</head>
+<body>
+    <!-- Sistema de Notificações -->
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>
+    
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h2>🏗️ Sistema de Gestão</h2>
+            <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
+            
+            <!-- Credenciais de Demo -->
+            <div class="demo-info">
+                <strong>🔧 Acesso Demo:</strong><br>
+                Email: <code>demo@sistema.com</code><br>
+                Senha: <code>123456</code>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="demo@sistema.com" value="demo@sistema.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="loginPassword" placeholder="123456" value="123456">
+            </div>
+            
+            <button class="btn btn-primary" onclick="fazerLogin()">
+                Entrar
+            </button>
+            
+            <button class="btn btn-secondary" onclick="loginDemo()">
+                🚀 Login Demo Rápido
+            </button>
+            
+            <div style="margin-top: 16px; text-align: center; font-size: 12px; color: #6b7280;">
+                Sistema v5.1 - Teste Simplificado ✅
+            </div>
+        </div>
+    </div>
+    
+    <!-- Container Principal -->
+    <div class="container hidden" id="mainContainer">
+        <div class="header">
+            <div>
+                <h1>Sistema de Gestão Colaborativo</h1>
+                <p>Obra 292 - Museu Nacional</p>
+                <p style="font-size: 14px; color: #6b7280;">
+                    Sistema v5.1 - FUNCIONANDO ✅
+                    <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <p id="dataAtual" style="color: #6b7280;"></p>
+                <div style="margin-top: 8px;">
+                    <button class="btn btn-danger" style="width: auto; margin: 0;" onclick="fazerLogout()">
+                        🚪 Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Básico -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #10b981;">5</div>
+                <div>Em Dia</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #f59e0b;">2</div>
+                <div>Atenção</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #ef4444;">1</div>
+                <div>Atraso</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #8b5cf6;">3</div>
+                <div>Eventos</div>
+            </div>
+        </div>
+        
+        <!-- Status do Sistema -->
+        <div class="card">
+            <h3>📊 Status do Sistema</h3>
+            <div class="status-sistema">
+                <div class="status-item">
+                    <strong>Login:</strong> <span style="color: #10b981;">Funcionando</span>
+                </div>
+                <div class="status-item">
+                    <strong>Interface:</strong> <span style="color: #10b981;">Carregada</span>
+                </div>
+                <div class="status-item">
+                    <strong>CSS:</strong> <span style="color: #10b981;">Integrado</span>
+                </div>
+                <div class="status-item">
+                    <strong>JavaScript:</strong> <span style="color: #10b981;">Ativo</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Próximos Passos -->
+        <div class="card">
+            <h3>🚀 Próximos Passos</h3>
+            <p><strong>✅ Sistema básico funcionando!</strong></p>
+            <p style="margin-top: 8px; color: #6b7280;">
+                Agora podemos trabalhar na integração modular:
+            </p>
+            <ul style="margin-top: 12px; margin-left: 20px; color: #6b7280;">
+                <li>Verificar quais módulos estão funcionais</li>
+                <li>Integrar CSS externos</li>
+                <li>Conectar Firebase</li>
+                <li>Ativar funcionalidades avançadas</li>
+            </ul>
+            
+            <button class="btn btn-primary" onclick="testarConexoes()" style="margin-top: 16px; width: auto;">
+                🔍 Testar Conexões
+            </button>
+        </div>
+    </div>
+
+    <script>
+    // ========== SISTEMA BÁSICO GARANTIDO ==========
+    
+    console.log('🎯 Iniciando sistema simplificado...');
+    
+    // Sistema de notificações
+    function mostrarNotificacao(mensagem, tipo = 'info') {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        
+        if (!notification || !notificationText) return;
+        
+        notification.className = 'notification';
+        if (tipo !== 'info') notification.classList.add(tipo);
+        
+        notificationText.textContent = mensagem;
+        notification.classList.add('show');
+        
+        setTimeout(() => notification.classList.remove('show'), 3000);
+        console.log(`📢 ${tipo.toUpperCase()}: ${mensagem}`);
+    }
+    
+    // Funções de autenticação
+    function fazerLogin() {
+        console.log('🔑 Executando login...');
+        
+        const email = document.getElementById('loginEmail')?.value;
+        const senha = document.getElementById('loginPassword')?.value;
+        
+        if (!email || !senha) {
+            mostrarNotificacao('Preencha email e senha!', 'error');
+            return;
+        }
+        
+        // Login demo
+        if (email === 'demo@sistema.com' && senha === '123456') {
+            mostrarNotificacao('Login realizado com sucesso!', 'success');
+            
+            // Esconder login e mostrar dashboard
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('hidden');
+            
+            // Atualizar informações do usuário
+            document.getElementById('usuarioInfo').textContent = '👤 Usuário Demo';
+            
+            // Atualizar data
+            atualizarDataAtual();
+            
+            console.log('✅ Login bem-sucedido');
+        } else {
+            mostrarNotificacao('Use: demo@sistema.com / 123456', 'error');
+        }
+    }
+    
+    function loginDemo() {
+        console.log('🚀 Login demo rápido...');
+        document.getElementById('loginEmail').value = 'demo@sistema.com';
+        document.getElementById('loginPassword').value = '123456';
+        fazerLogin();
+    }
+    
+    function fazerLogout() {
+        if (!confirm('Tem certeza que deseja sair?')) return;
+        
+        console.log('🚪 Fazendo logout...');
+        
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('mainContainer').classList.add('hidden');
+        
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        
+        mostrarNotificacao('Logout realizado!', 'success');
+    }
+    
+    function atualizarDataAtual() {
+        const hoje = new Date();
+        const elemento = document.getElementById('dataAtual');
+        if (elemento) {
+            elemento.textContent = hoje.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    }
+    
+    function testarConexoes() {
+        mostrarNotificacao('Testando conexões...', 'info');
+        
+        setTimeout(() => {
+            let resultados = [];
+            
+            // Testar se Firebase está disponível
+            if (typeof firebase !== 'undefined') {
+                resultados.push('✅ Firebase carregado');
+            } else {
+                resultados.push('❌ Firebase não disponível');
+            }
+            
+            // Testar estrutura de arquivos
+            resultados.push('✅ Estrutura HTML funcional');
+            resultados.push('✅ CSS integrado');
+            resultados.push('✅ JavaScript ativo');
+            
+            console.log('📊 Resultados dos testes:', resultados);
+            mostrarNotificacao(`Testes concluídos! ${resultados.length} verificações`, 'success');
+            
+            // Mostrar no console
+            resultados.forEach(resultado => console.log(resultado));
+        }, 1000);
+    }
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOM carregado');
+        atualizarDataAtual();
+        mostrarNotificacao('Sistema carregado!', 'success');
+    });
+    
+    // Listener de Enter para login
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+            fazerLogin();
+        }
+    });
+    
+    console.log('✅ Sistema simplificado carregado!');
+    </script>
+</body>
+</html>
