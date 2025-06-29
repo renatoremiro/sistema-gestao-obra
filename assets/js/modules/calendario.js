@@ -734,3 +734,62 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Funções faltantes implementadas: mostrarNovoEvento() e atualizarCamposEvento()');
+
+/**
+ * Inicializa o calendário automaticamente
+ */
+function inicializarCalendario() {
+    // Verificar se elementos necessários existem
+    if (!document.getElementById('calendario')) {
+        console.log('⚠️ Elemento calendário não encontrado, tentando novamente...');
+        setTimeout(inicializarCalendario, 100);
+        return;
+    }
+    
+    // Verificar se estado do sistema existe
+    if (typeof estadoSistema === 'undefined' || !estadoSistema) {
+        console.log('⚠️ Estado do sistema não encontrado, tentando novamente...');
+        setTimeout(inicializarCalendario, 100);
+        return;
+    }
+    
+    // Definir data atual se não estiver definida
+    if (!estadoSistema.mesAtual && estadoSistema.mesAtual !== 0) {
+        const hoje = new Date();
+        estadoSistema.anoAtual = hoje.getFullYear();
+        estadoSistema.mesAtual = hoje.getMonth();
+        console.log('📅 Data atual definida:', estadoSistema.anoAtual, estadoSistema.mesAtual);
+    }
+    
+    // Gerar calendário
+    console.log('📅 Inicializando calendário automaticamente...');
+    gerarCalendario();
+    console.log('✅ Calendário inicializado com sucesso!');
+}
+
+/**
+ * Aguardar carregamento completo e inicializar
+ */
+function aguardarInicializacao() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializarCalendario);
+    } else {
+        // DOM já carregado
+        setTimeout(inicializarCalendario, 50);
+    }
+}
+
+// Executar inicialização
+aguardarInicializacao();
+
+// Também tentar inicializar quando a janela carregar completamente
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        if (!document.querySelector('#calendario .dia')) {
+            console.log('🔄 Calendário vazio detectado, reinicializando...');
+            inicializarCalendario();
+        }
+    }, 200);
+});
+
+console.log('🔧 Sistema de inicialização automática do calendário ativado');
