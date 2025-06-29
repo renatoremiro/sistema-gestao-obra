@@ -433,3 +433,304 @@ function deletarEvento(id) {
 if (typeof console !== 'undefined') {
     console.log('📅 Módulo calendario.js carregado com sucesso');
 }
+/**
+ * Mostra modal para criar novo evento
+ * Função chamada pelo botão "Novo Evento" e ao clicar em dia vazio
+ */
+function mostrarNovoEvento() {
+    // Limpar estado de edição
+    estadoSistema.editandoEvento = null;
+    estadoSistema.pessoasSelecionadas.clear();
+    estadoSistema.tarefasVinculadas.clear();
+    
+    // Configurar título do modal
+    document.getElementById('modalEventoTitulo').textContent = 'Novo Evento';
+    
+    // Limpar formulário
+    document.getElementById('eventoId').value = '';
+    document.getElementById('eventoTipo').value = 'reuniao';
+    document.getElementById('eventoTitulo').value = '';
+    document.getElementById('eventoDescricao').value = '';
+    document.getElementById('eventoDiaCompleto').checked = false;
+    document.getElementById('eventoDataFim').value = '';
+    document.getElementById('eventoHorarioInicio').value = '09:00';
+    document.getElementById('eventoHorarioFim').value = '10:00';
+    document.getElementById('eventoLocal').value = '';
+    
+    // Configurar data padrão (hoje ou data selecionada)
+    const dataInput = document.getElementById('eventoData');
+    if (!dataInput.value) {
+        const hoje = new Date();
+        const dataFormatada = hoje.toISOString().split('T')[0];
+        dataInput.value = dataFormatada;
+    }
+    
+    // Limpar recorrência
+    document.getElementById('eventoRecorrente').checked = false;
+    document.getElementById('recorrenciaConfig').classList.add('hidden');
+    document.getElementById('recorrenciaTipo').value = 'semanal';
+    document.getElementById('recorrenciaFim').value = '';
+    
+    // Limpar checkboxes de dias da semana
+    document.querySelectorAll('#grupoDiasSemana input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+    
+    // Atualizar interface
+    atualizarCamposEvento();
+    toggleHorarios();
+    toggleRecorrencia();
+    atualizarListaPessoas();
+    atualizarListaTarefasVinculadas();
+    
+    // Mostrar modal
+    document.getElementById('modalEvento').classList.add('active');
+    
+    // Focar no campo título
+    setTimeout(() => {
+        document.getElementById('eventoTitulo').focus();
+    }, 100);
+}
+
+/**
+ * Atualiza campos do evento baseado no tipo e configurações
+ * Função chamada após preencher formulário ou mudar configurações
+ */
+function atualizarCamposEvento() {
+    const tipoEvento = document.getElementById('eventoTipo').value;
+    const diaCompleto = document.getElementById('eventoDiaCompleto').checked;
+    
+    // Configurações específicas por tipo de evento
+    const configTipos = {
+        'reuniao': {
+            horariosPadrao: true,
+            localObrigatorio: false,
+            pessoasRecomendado: true,
+            placeholder: 'Assunto da reunião'
+        },
+        'entrega': {
+            horariosPadrao: false,
+            localObrigatorio: true,
+            pessoasRecomendado: true,
+            placeholder: 'Nome da entrega'
+        },
+        'prazo': {
+            horariosPadrao: true,
+            localObrigatorio: false,
+            pessoasRecomendado: false,
+            placeholder: 'Nome do prazo'
+        },
+        'marco': {
+            horariosPadrao: false,
+            localObrigatorio: false,
+            pessoasRecomendado: false,
+            placeholder: 'Nome do marco'
+        },
+        'outro': {
+            horariosPadrao: true,
+            localObrigatorio: false,
+            pessoasRecomendado: false,
+            placeholder: 'Título do evento'
+        }
+    };
+    
+    const config = configTipos[tipoEvento] || configTipos['outro'];
+    
+    // Atualizar placeholder do título
+    const tituloInput = document.getElementById('eventoTitulo');
+    if (tituloInput) {
+        tituloInput.placeholder = config.placeholder;
+    }
+    
+    // Configurar horários padrão se necessário
+    if (config.horariosPadrao && !estadoSistema.editandoEvento) {
+        const horaInicio = document.getElementById('eventoHorarioInicio');
+        const horaFim = document.getElementById('eventoHorarioFim');
+        
+        if (!horaInicio.value) {
+            switch(tipoEvento) {
+                case 'reuniao':
+                    horaInicio.value = '09:00';
+                    horaFim.value = '10:00';
+                    break;
+                case 'prazo':
+                    horaInicio.value = '18:00';
+                    horaFim.value = '18:00';
+                    break;
+                default:
+                    horaInicio.value = '09:00';
+                    horaFim.value = '10:00';
+            }
+        }
+    }
+    
+    // Mostrar/ocultar campos baseado no tipo
+    const grupoLocal = document.querySelector('.grupo-local');
+    if (grupoLocal) {
+        if (config.localObrigatorio) {
+            grupoLocal.style.display = 'block';
+            const localInput = document.getElementById('eventoLocal');
+            if (localInput) {
+                localInput.required = true;
+            }
+        }
+    }
+    
+    // Destacar seção de pessoas se recomendado
+    const secaoPessoas = document.querySelector('.secao-pessoas');
+    if (secaoPessoas) {
+        if (config.pessoasRecomendado) {
+            secaoPessoas.classList.add('recomendado');
+        } else {
+            secaoPessoas.classList.remove('recomendado');
+        }
+    }
+    
+    // Configurar horários se dia completo
+    if (diaCompleto) {
+        document.getElementById('eventoHorarioInicio').value = '00:00';
+        document.getElementById('eventoHorarioFim').value = '23:59';
+    }
+    
+    // Atualizar indicadores visuais
+    atualizarIndicadoresEvento(tipoEvento);
+}
+
+/**
+ * Atualiza indicadores visuais do tipo de evento
+ */
+function atualizarIndicadoresEvento(tipo) {
+    const indicador = document.querySelector('.tipo-evento-indicador');
+    if (!indicador) return;
+    
+    const tipoConfig = CALENDARIO_SETTINGS.TIPOS_EVENTO[tipo] || CALENDARIO_SETTINGS.TIPOS_EVENTO.outro;
+    
+    indicador.innerHTML = `${tipoConfig.icone} ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+    indicador.style.color = tipoConfig.cor;
+}
+
+/**
+ * Toggle de horários (mostrar/ocultar baseado em "dia completo")
+ */
+function toggleHorarios() {
+    const diaCompleto = document.getElementById('eventoDiaCompleto').checked;
+    const grupoHorarios = document.querySelector('.grupo-horarios');
+    
+    if (grupoHorarios) {
+        if (diaCompleto) {
+            grupoHorarios.style.display = 'none';
+        } else {
+            grupoHorarios.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Toggle de configuração de recorrência
+ */
+function toggleRecorrencia() {
+    const recorrente = document.getElementById('eventoRecorrente').checked;
+    const configRecorrencia = document.getElementById('recorrenciaConfig');
+    
+    if (configRecorrencia) {
+        if (recorrente) {
+            configRecorrencia.classList.remove('hidden');
+        } else {
+            configRecorrencia.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * Atualiza lista de pessoas selecionadas
+ */
+function atualizarListaPessoas() {
+    const lista = document.getElementById('pessoasSelecionadas');
+    if (!lista) return;
+    
+    lista.innerHTML = '';
+    
+    if (estadoSistema.pessoasSelecionadas.size === 0) {
+        lista.innerHTML = '<div class="lista-vazia">Nenhuma pessoa selecionada</div>';
+        return;
+    }
+    
+    estadoSistema.pessoasSelecionadas.forEach(pessoa => {
+        const item = document.createElement('div');
+        item.className = 'pessoa-item';
+        item.innerHTML = `
+            <span>${pessoa}</span>
+            <button type="button" onclick="removerPessoa('${pessoa}')" class="btn-remover">×</button>
+        `;
+        lista.appendChild(item);
+    });
+}
+
+/**
+ * Atualiza lista de tarefas vinculadas
+ */
+function atualizarListaTarefasVinculadas() {
+    const lista = document.getElementById('tarefasVinculadas');
+    if (!lista) return;
+    
+    lista.innerHTML = '';
+    
+    if (estadoSistema.tarefasVinculadas.size === 0) {
+        lista.innerHTML = '<div class="lista-vazia">Nenhuma tarefa vinculada</div>';
+        return;
+    }
+    
+    estadoSistema.tarefasVinculadas.forEach((tarefa, key) => {
+        const item = document.createElement('div');
+        item.className = 'tarefa-item';
+        item.innerHTML = `
+            <span>${tarefa.nome}</span>
+            <button type="button" onclick="removerTarefa('${key}')" class="btn-remover">×</button>
+        `;
+        lista.appendChild(item);
+    });
+}
+
+/**
+ * Remove pessoa da seleção
+ */
+function removerPessoa(pessoa) {
+    estadoSistema.pessoasSelecionadas.delete(pessoa);
+    atualizarListaPessoas();
+}
+
+/**
+ * Remove tarefa da vinculação  
+ */
+function removerTarefa(key) {
+    estadoSistema.tarefasVinculadas.delete(key);
+    atualizarListaTarefasVinculadas();
+}
+
+// ========== EVENTOS DO FORMULÁRIO ==========
+
+// Event listeners para campos do formulário
+document.addEventListener('DOMContentLoaded', function() {
+    // Listener para mudança de tipo de evento
+    const tipoEvento = document.getElementById('eventoTipo');
+    if (tipoEvento) {
+        tipoEvento.addEventListener('change', atualizarCamposEvento);
+    }
+    
+    // Listener para dia completo
+    const diaCompleto = document.getElementById('eventoDiaCompleto');
+    if (diaCompleto) {
+        diaCompleto.addEventListener('change', function() {
+            atualizarCamposEvento();
+            toggleHorarios();
+        });
+    }
+    
+    // Listener para recorrência
+    const eventoRecorrente = document.getElementById('eventoRecorrente');
+    if (eventoRecorrente) {
+        eventoRecorrente.addEventListener('change', toggleRecorrencia);
+    }
+});
+
+console.log('✅ Funções faltantes implementadas: mostrarNovoEvento() e atualizarCamposEvento()');
