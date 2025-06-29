@@ -1,253 +1,163 @@
-/* ==========================================================================
-   MÓDULO CALENDÁRIO - Sistema de Gestão v5.1
-   ========================================================================== */
-
 /**
- * Módulo responsável por todas as funcionalidades do calendário
- * Inclui eventos, recorrências, feriados, navegação e timeline
+ * MÓDULO DE CALENDÁRIO - Sistema de Gestão v5.1
+ * Responsável pela renderização e manipulação do calendário
  */
 
-/**
- * Cache do calendário para performance
- */
-let cacheCalendario = {
-    mesAtual: null,
-    anoAtual: null,
-    eventos: null,
-    feriados: null,
-    htmlCalendario: null,
-    ultimaAtualizacao: null
-};
-
-/**
- * Configurações do calendário
- */
-const CALENDARIO_CONFIG = {
-    diasSemana: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-    meses: [
+// ========== CONFIGURAÇÕES DO CALENDÁRIO ==========
+const CALENDARIO_SETTINGS = {
+    DIAS_SEMANA: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+    MESES: [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ],
-    cacheTimeout: 60000, // 1 minuto
-    maxEventosPorDia: 8,
-    animacoesPadrao: true,
-    mostrarTooltips: true,
-    permitirEdicao: true
+    TIPOS_EVENTO: {
+        reuniao: { icone: '📅', cor: '#3b82f6' },
+        entrega: { icone: '📦', cor: '#10b981' },
+        prazo: { icone: '⏰', cor: '#ef4444' },
+        marco: { icone: '🎯', cor: '#8b5cf6' },
+        outro: { icone: '📌', cor: '#6b7280' }
+    },
+    ALTURA_CELULA_MIN: 100,
+    ALTURA_CELULA_MOBILE: 60
 };
 
+// ========== FUNÇÕES DO CALENDÁRIO ==========
+
 /**
- * Gera e renderiza o calendário principal
+ * Gera o calendário para o mês atual
  */
 function gerarCalendario() {
-    try {
-        console.log('📅 Gerando calendário...');
+    const calendario = document.getElementById('calendario');
+    if (!calendario) return;
+    
+    calendario.innerHTML = '';
+    
+    // Criar headers dos dias da semana
+    CALENDARIO_SETTINGS.DIAS_SEMANA.forEach(dia => {
+        const header = document.createElement('div');
+        header.className = 'dia-header';
+        header.textContent = dia;
+        calendario.appendChild(header);
+    });
+    
+    const primeiroDia = new Date(estadoSistema.anoAtual, estadoSistema.mesAtual, 1);
+    const ultimoDia = new Date(estadoSistema.anoAtual, estadoSistema.mesAtual + 1, 0);
+    const primeiroDiaSemana = primeiroDia.getDay();
+    
+    // Células vazias antes do primeiro dia
+    for (let i = 0; i < primeiroDiaSemana; i++) {
+        const diaVazio = document.createElement('div');
+        diaVazio.className = 'dia outro-mes';
+        calendario.appendChild(diaVazio);
+    }
+    
+    // Gerar dias do mês
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+        const diaDiv = document.createElement('div');
+        diaDiv.className = 'dia';
         
-        const container = document.getElementById('calendario');
-        if (!container) {
-            console.warn('⚠️ Container do calendário não encontrado');
-            return false;
-        }
-
-        const mesAtual = estadoSistema?.mesAtual ?? new Date().getMonth();
-        const anoAtual = estadoSistema?.anoAtual ?? new Date().getFullYear();
-
-        // Verificar cache
-        if (verificarCacheCalendario(mesAtual, anoAtual)) {
-            container.innerHTML = cacheCalendario.htmlCalendario;
-            aplicarEventosCalendario();
-            return true;
-        }
-
-        // Limpar container
-        container.innerHTML = '';
+        const dataCompleta = `${estadoSistema.anoAtual}-${String(estadoSistema.mesAtual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         
-        let htmlCalendario = '';
-
-        // Headers dos dias da semana
-        CALENDARIO_CONFIG.diasSemana.forEach(dia => {
-            htmlCalendario += `<div class="dia-header">${dia}</div>`;
-        });
-
-        // Calcular datas do mês
-        const primeiroDia = new Date(anoAtual, mesAtual, 1);
-        const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
-        const primeiroDiaSemana = primeiroDia.getDay();
-        const totalDias = ultimoDia.getDate();
-
-        // Dias do mês anterior (para completar semana)
-        const mesAnterior = new Date(anoAtual, mesAtual - 1, 0);
-        for (let i = primeiroDiaSemana - 1; i >= 0; i--) {
-            const dia = mesAnterior.getDate() - i;
-            htmlCalendario += criarCelulaDia(dia, mesAtual - 1, anoAtual, 'outro-mes');
+        // Verificar se é feriado
+        if (dados.feriados && dados.feriados[dataCompleta]) {
+            diaDiv.classList.add('dia-feriado');
         }
-
-        // Dias do mês atual
-        for (let dia = 1; dia <= totalDias; dia++) {
-            const classes = [];
-            
-            // Verificar se é hoje
-            const hoje = new Date();
-            if (anoAtual === hoje.getFullYear() && 
-                mesAtual === hoje.getMonth() && 
-                dia === hoje.getDate()) {
-                classes.push('hoje');
-            }
-            
-            htmlCalendario += criarCelulaDia(dia, mesAtual, anoAtual, classes.join(' '));
+        
+        // Verificar se é hoje
+        const hoje = new Date();
+        if (hoje.getFullYear() === estadoSistema.anoAtual && 
+            hoje.getMonth() === estadoSistema.mesAtual && 
+            hoje.getDate() === dia) {
+            diaDiv.classList.add('hoje');
         }
-
-        // Dias do próximo mês (para completar semana)
-        const diasRestantes = 42 - (primeiroDiaSemana + totalDias); // 6 semanas * 7 dias
-        for (let dia = 1; dia <= diasRestantes; dia++) {
-            htmlCalendario += criarCelulaDia(dia, mesAtual + 1, anoAtual, 'outro-mes');
+        
+        const numeroDiv = document.createElement('div');
+        numeroDiv.className = 'dia-numero';
+        numeroDiv.innerHTML = `<span>${dia}</span>`;
+        
+        // Adicionar label de feriado se necessário
+        if (dados.feriados && dados.feriados[dataCompleta]) {
+            numeroDiv.innerHTML += `<span class="feriado-label" title="${dados.feriados[dataCompleta]}">Feriado</span>`;
         }
-
-        container.innerHTML = htmlCalendario;
-
-        // Aplicar eventos aos dias
-        aplicarEventosCalendario();
-
-        // Atualizar cabeçalho do calendário
-        atualizarCabecalhoCalendario(mesAtual, anoAtual);
-
-        // Atualizar timeline
-        if (typeof atualizarTimeline === 'function') {
-            atualizarTimeline();
-        }
-
-        // Salvar no cache
-        salvarCacheCalendario(mesAtual, anoAtual, htmlCalendario);
-
-        // Aplicar animações
-        if (CALENDARIO_CONFIG.animacoesPadrao) {
-            animarCalendario();
-        }
-
-        console.log('✅ Calendário gerado com sucesso');
-        return true;
-
-    } catch (error) {
-        console.error('❌ Erro ao gerar calendário:', error);
-        mostrarErroCalendario(error);
-        return false;
-    }
-}
-
-/**
- * Cria uma célula de dia do calendário
- */
-function criarCelulaDia(dia, mes, ano, classes = '') {
-    const dataCompleta = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-    const feriado = dados?.feriados?.[dataCompleta];
-    
-    let classesCompletas = `dia ${classes}`;
-    if (feriado) {
-        classesCompletas += ' dia-feriado';
-    }
-
-    let htmlDia = `<div class="${classesCompletas}" data-data="${dataCompleta}">`;
-    
-    // Número do dia e feriado
-    htmlDia += `<div class="dia-numero">`;
-    htmlDia += `<span>${dia}</span>`;
-    if (feriado) {
-        htmlDia += `<span class="feriado-label" title="${feriado}">Feriado</span>`;
-    }
-    htmlDia += `</div>`;
-    
-    htmlDia += `</div>`;
-    
-    return htmlDia;
-}
-
-/**
- * Aplica eventos aos dias do calendário
- */
-function aplicarEventosCalendario() {
-    const dias = document.querySelectorAll('.dia[data-data]');
-    
-    dias.forEach(diaElement => {
-        const data = diaElement.dataset.data;
-        if (!data) return;
-
+        
+        diaDiv.appendChild(numeroDiv);
+        
         // Obter eventos do dia
-        const eventosConflitos = obterEventosDoDia(data);
+        const eventosDia = obterEventosDoDia(dataCompleta);
         
-        // Limpar eventos existentes
-        const eventosExistentes = diaElement.querySelectorAll('.evento');
-        eventosExistentes.forEach(evento => evento.remove());
-
-        // Adicionar eventos
-        eventosConflitos.forEach((evento, index) => {
-            if (index < CALENDARIO_CONFIG.maxEventosPorDia) {
-                const eventoElement = criarElementoEvento(evento, data);
-                diaElement.appendChild(eventoElement);
-            }
+        // Ordenar eventos por horário
+        eventosDia.sort((a, b) => {
+            const horaA = a.diaCompleto ? '00:00' : a.horarioInicio;
+            const horaB = b.diaCompleto ? '00:00' : b.horarioInicio;
+            return horaA.localeCompare(horaB);
         });
-
-        // Indicador de mais eventos
-        if (eventosConflitos.length > CALENDARIO_CONFIG.maxEventosPorDia) {
-            const maisEventos = document.createElement('div');
-            maisEventos.className = 'evento evento-mais';
-            maisEventos.textContent = `+${eventosConflitos.length - CALENDARIO_CONFIG.maxEventosPorDia} mais`;
-            maisEventos.onclick = (e) => {
-                e.stopPropagation();
-                mostrarEventosDia(data, eventosConflitos);
-            };
-            diaElement.appendChild(maisEventos);
-        }
-
-        // Click handler do dia
-        diaElement.onclick = (e) => {
-            if (e.target === diaElement || e.target.closest('.dia-numero')) {
-                abrirNovoEvento(data);
+        
+        // Renderizar eventos
+        eventosDia.forEach(evento => {
+            const eventoDiv = criarElementoEvento(evento);
+            diaDiv.appendChild(eventoDiv);
+        });
+        
+        // Event listener para criar novo evento
+        diaDiv.onclick = (e) => {
+            if (e.target === diaDiv || e.target.classList.contains('dia-numero')) {
+                document.getElementById('eventoData').value = dataCompleta;
+                mostrarNovoEvento();
             }
         };
-    });
+        
+        calendario.appendChild(diaDiv);
+    }
+    
+    // Atualizar título do mês
+    const mesAno = document.getElementById('mesAno');
+    if (mesAno) {
+        mesAno.textContent = `${CALENDARIO_SETTINGS.MESES[estadoSistema.mesAtual]} ${estadoSistema.anoAtual}`;
+    }
+    
+    // Atualizar timeline
+    atualizarTimelineEventos();
 }
 
 /**
- * Cria elemento visual de um evento
+ * Cria elemento visual para um evento
  */
-function criarElementoEvento(evento, data) {
+function criarElementoEvento(evento) {
     const eventoDiv = document.createElement('div');
-    const classes = ['evento', `evento-${evento.tipo}`];
+    eventoDiv.className = `evento evento-${evento.tipo}`;
     
     // Classes especiais
-    if (evento.diaCompleto) classes.push('evento-dia-completo');
-    if (evento.dataFim && evento.data !== evento.dataFim) classes.push('evento-multi-dia');
-    if (evento.recorrencia) classes.push('evento-recorrente');
-    
-    eventoDiv.className = classes.join(' ');
-    
-    // Ícone do tipo
-    const icones = {
-        reuniao: '📅',
-        entrega: '📦',
-        prazo: '⏰',
-        marco: '🎯',
-        outro: '📌'
-    };
-    
-    const icone = icones[evento.tipo] || icones.outro;
-    
-    // Conteúdo do evento
-    let htmlEvento = `
-        <div class="evento-header">
-            <span>${icone} ${evento.diaCompleto ? 'Dia todo' : evento.horarioInicio || ''}</span>
-            ${evento.recorrencia ? '<span class="recorrente-indicator">🔄</span>' : ''}
-        </div>
-        <div class="evento-titulo">${evento.titulo}</div>
-    `;
-    
-    // Informações adicionais
-    if (evento.pessoas && evento.pessoas.length > 0) {
-        const labelPessoas = evento.tipo === 'reuniao' ? '👥' : '👤';
-        htmlEvento += `<div class="evento-info">${labelPessoas} ${evento.pessoas.length}</div>`;
+    if (evento.diaCompleto) {
+        eventoDiv.classList.add('evento-dia-completo');
     }
     
-    if (evento.local && evento.tipo === 'reuniao') {
-        htmlEvento += `<div class="evento-info">📍 ${truncarTexto(evento.local, 15)}</div>`;
+    if (evento.dataFim && evento.data !== evento.dataFim) {
+        eventoDiv.classList.add('evento-multi-dia');
+    }
+    
+    // Conteúdo do evento
+    const tipoConfig = CALENDARIO_SETTINGS.TIPOS_EVENTO[evento.tipo] || CALENDARIO_SETTINGS.TIPOS_EVENTO.outro;
+    
+    let htmlEvento = `
+        <div class="evento-header">
+            <span>${tipoConfig.icone} ${evento.diaCompleto ? 'Dia todo' : evento.horarioInicio}</span>
+            ${evento.recorrencia ? '<span class="recorrente-indicator">🔄</span>' : ''}
+        </div>
+        <div style="font-weight: 500;">${evento.titulo}</div>
+    `;
+    
+    // Adicionar informações extras
+    if (evento.pessoas && evento.pessoas.length > 0) {
+        const labelPessoas = evento.tipo === 'reuniao' ? '👥' : '👤';
+        htmlEvento += `<div class="evento-info">${labelPessoas} ${evento.pessoas.length} ${evento.pessoas.length > 1 ? 'pessoas' : 'pessoa'}</div>`;
+    }
+    
+    if (evento.local) {
+        htmlEvento += `<div class="evento-info">📍 ${evento.local}</div>`;
+    }
+    
+    if (evento.tarefasRelacionadas && evento.tarefasRelacionadas.length > 0) {
+        htmlEvento += `<div class="evento-info">📋 ${evento.tarefasRelacionadas.length} tarefa(s)</div>`;
     }
     
     if (evento.horarioFim && !evento.diaCompleto) {
@@ -256,117 +166,68 @@ function criarElementoEvento(evento, data) {
     
     eventoDiv.innerHTML = htmlEvento;
     
-    // Tooltip
-    if (CALENDARIO_CONFIG.mostrarTooltips) {
-        adicionarTooltipEvento(eventoDiv, evento);
-    }
-    
-    // Event handlers
-    eventoDiv.onclick = (e) => {
+    // Event listeners
+    eventoDiv.onclick = function(e) {
         e.stopPropagation();
-        if (CALENDARIO_CONFIG.permitirEdicao) {
-            editarEvento(evento);
-        }
+        editarEvento(evento);
     };
     
-    // Botão de exclusão (apenas no hover)
-    if (CALENDARIO_CONFIG.permitirEdicao) {
-        const deleteBtn = document.createElement('span');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.innerHTML = '×';
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            confirmarExclusaoEvento(evento);
-        };
-        eventoDiv.appendChild(deleteBtn);
-    }
+    eventoDiv.title = `${evento.titulo}\n${evento.descricao || 'Clique para editar'}`;
+    
+    // Botão de deletar
+    const deleteBtn = document.createElement('span');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.onclick = function(e) {
+        e.stopPropagation();
+        deletarEvento(evento.id);
+    };
+    eventoDiv.appendChild(deleteBtn);
     
     return eventoDiv;
-}
-
-/**
- * Adiciona tooltip ao evento
- */
-function adicionarTooltipEvento(elemento, evento) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'evento-tooltip';
-    
-    let conteudoTooltip = `<strong>${evento.titulo}</strong>`;
-    if (evento.descricao) {
-        conteudoTooltip += `<br>${evento.descricao}`;
-    }
-    
-    conteudoTooltip += `<br><strong>Tipo:</strong> ${evento.tipo}`;
-    
-    if (evento.local) {
-        conteudoTooltip += `<br><strong>Local:</strong> ${evento.local}`;
-    }
-    
-    if (evento.pessoas && evento.pessoas.length > 0) {
-        conteudoTooltip += `<br><strong>Pessoas:</strong> ${evento.pessoas.join(', ')}`;
-    }
-    
-    if (evento.recorrencia) {
-        conteudoTooltip += `<br><strong>Recorrência:</strong> ${evento.recorrencia.tipo}`;
-    }
-    
-    tooltip.innerHTML = conteudoTooltip;
-    elemento.appendChild(tooltip);
 }
 
 /**
  * Obtém eventos de um dia específico
  */
 function obterEventosDoDia(data) {
-    if (!dados?.eventos) return [];
+    if (!dados || !dados.eventos) return [];
     
     const dataObj = new Date(data + 'T00:00:00');
     const eventos = [];
     
     dados.eventos.forEach(evento => {
-        // Evento direto na data
+        // Evento na data exata
         if (evento.data === data) {
             eventos.push(evento);
-            return;
         }
-        
         // Evento de múltiplos dias
-        if (evento.dataFim) {
+        else if (evento.dataFim) {
             const inicio = new Date(evento.data + 'T00:00:00');
             const fim = new Date(evento.dataFim + 'T00:00:00');
-            
-            if (dataObj >= inicio && dataObj <= fim) {
-                eventos.push({ ...evento, continuacao: true });
+            const atual = new Date(data + 'T00:00:00');
+            if (atual >= inicio && atual <= fim) {
+                eventos.push({...evento, continuacao: true});
             }
-            return;
         }
-        
         // Evento recorrente
-        if (evento.recorrencia) {
-            if (verificarRecorrencia(evento, data)) {
-                eventos.push({ ...evento, recorrente: true });
+        else if (evento.recorrencia) {
+            if (verificarRecorrenciaEvento(evento, data)) {
+                eventos.push({...evento, recorrente: true});
             }
         }
     });
     
-    // Ordenar por horário
-    return eventos.sort((a, b) => {
-        const horaA = a.diaCompleto ? '00:00' : (a.horarioInicio || '00:00');
-        const horaB = b.diaCompleto ? '00:00' : (b.horarioInicio || '00:00');
-        return horaA.localeCompare(horaB);
-    });
+    return eventos;
 }
 
 /**
- * Verifica se evento recorrente ocorre em data específica
+ * Verifica se um evento recorrente ocorre numa data específica
  */
-function verificarRecorrencia(evento, data) {
-    if (!evento.recorrencia) return false;
-    
+function verificarRecorrenciaEvento(evento, data) {
     const dataEvento = new Date(evento.data + 'T00:00:00');
     const dataVerificar = new Date(data + 'T00:00:00');
     
-    // Não pode ser antes da data original
     if (dataVerificar < dataEvento) return false;
     
     // Verificar fim da recorrência
@@ -377,13 +238,13 @@ function verificarRecorrencia(evento, data) {
     
     const tipo = evento.recorrencia.tipo;
     
-    switch (tipo) {
+    switch(tipo) {
         case 'diaria':
             return true;
             
         case 'semanal':
             const diaSemana = dataVerificar.getDay();
-            return evento.recorrencia.diasSemana?.includes(diaSemana) || false;
+            return evento.recorrencia.diasSemana && evento.recorrencia.diasSemana.includes(diaSemana);
             
         case 'quinzenal':
             const diffDias = Math.floor((dataVerificar - dataEvento) / (1000 * 60 * 60 * 24));
@@ -403,13 +264,77 @@ function verificarRecorrencia(evento, data) {
 }
 
 /**
- * Navegação do calendário
+ * Atualiza timeline de próximos eventos
+ */
+function atualizarTimelineEventos() {
+    const timeline = document.getElementById('timelineEventos');
+    if (!timeline || !dados) return;
+    
+    timeline.innerHTML = '';
+    
+    const hoje = new Date();
+    const eventos = [];
+    
+    // Coletar eventos dos próximos 7 dias
+    for (let i = 0; i < 7; i++) {
+        const data = new Date(hoje);
+        data.setDate(hoje.getDate() + i);
+        const dataStr = data.toISOString().split('T')[0];
+        
+        const eventosDia = obterEventosDoDia(dataStr);
+        eventosDia.forEach(evento => {
+            eventos.push({
+                ...evento,
+                dataCompleta: dataStr,
+                diasRestantes: i
+            });
+        });
+    }
+    
+    // Ordenar eventos
+    eventos.sort((a, b) => {
+        if (a.dataCompleta !== b.dataCompleta) {
+            return a.dataCompleta.localeCompare(b.dataCompleta);
+        }
+        return (a.horarioInicio || '00:00').localeCompare(b.horarioInicio || '00:00');
+    });
+    
+    // Mostrar apenas os primeiros 5 eventos
+    eventos.slice(0, 5).forEach(evento => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        
+        const tipoConfig = CALENDARIO_SETTINGS.TIPOS_EVENTO[evento.tipo] || CALENDARIO_SETTINGS.TIPOS_EVENTO.outro;
+        
+        item.innerHTML = `
+            <div class="timeline-marker" style="border-color: ${tipoConfig.cor};"></div>
+            <div class="timeline-content">
+                <div style="font-weight: 600; margin-bottom: 4px;">${evento.titulo}</div>
+                <div style="font-size: 13px; color: #6b7280;">
+                    ${evento.diasRestantes === 0 ? 'Hoje' : evento.diasRestantes === 1 ? 'Amanhã' : `Em ${evento.diasRestantes} dias`}
+                    • ${formatarData(evento.dataCompleta)}
+                    ${evento.diaCompleto ? '• Dia todo' : `• ${evento.horarioInicio}`}
+                </div>
+                ${evento.pessoas && evento.pessoas.length > 0 ? 
+                    `<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                        ${evento.tipo === 'reuniao' ? 'Participantes' : 'Responsáveis'}: ${evento.pessoas.join(', ')}
+                    </div>` : ''}
+            </div>
+        `;
+        
+        timeline.appendChild(item);
+    });
+    
+    if (eventos.length === 0) {
+        timeline.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Nenhum evento nos próximos 7 dias</div>';
+    }
+}
+
+/**
+ * Muda o mês do calendário
  */
 function mudarMes(direcao) {
-    if (!estadoSistema) return false;
-    
     estadoSistema.mesAtual += direcao;
-    
     if (estadoSistema.mesAtual < 0) {
         estadoSistema.mesAtual = 11;
         estadoSistema.anoAtual--;
@@ -417,294 +342,94 @@ function mudarMes(direcao) {
         estadoSistema.mesAtual = 0;
         estadoSistema.anoAtual++;
     }
-    
-    // Limpar cache para forçar regeneração
-    limparCacheCalendario();
-    
-    // Regenerar calendário
     gerarCalendario();
-    
-    // Atualizar estatísticas se necessário
-    if (typeof atualizarEstatisticas === 'function') {
-        atualizarEstatisticas();
-    }
-    
-    console.log(`📅 Navegação: ${CALENDARIO_CONFIG.meses[estadoSistema.mesAtual]} ${estadoSistema.anoAtual}`);
-    return true;
+    atualizarEstatisticas();
 }
 
 /**
- * Atualiza cabeçalho do calendário
+ * Edita um evento existente
  */
-function atualizarCabecalhoCalendario(mes, ano) {
-    const elementoMesAno = document.getElementById('mesAno');
-    if (elementoMesAno) {
-        elementoMesAno.textContent = `${CALENDARIO_CONFIG.meses[mes]} ${ano}`;
+function editarEvento(evento) {
+    estadoSistema.editandoEvento = evento.id;
+    estadoSistema.pessoasSelecionadas.clear();
+    estadoSistema.tarefasVinculadas.clear();
+    
+    // Marcar como editando
+    marcarEditando('evento', evento.id);
+    
+    // Preencher formulário
+    document.getElementById('modalEventoTitulo').textContent = 'Editar Evento';
+    document.getElementById('eventoId').value = evento.id;
+    document.getElementById('eventoTipo').value = evento.tipo;
+    document.getElementById('eventoTitulo').value = evento.titulo;
+    document.getElementById('eventoDescricao').value = evento.descricao || '';
+    document.getElementById('eventoDiaCompleto').checked = evento.diaCompleto;
+    document.getElementById('eventoData').value = evento.data;
+    document.getElementById('eventoDataFim').value = evento.dataFim || '';
+    document.getElementById('eventoHorarioInicio').value = evento.horarioInicio || '09:00';
+    document.getElementById('eventoHorarioFim').value = evento.horarioFim || '';
+    document.getElementById('eventoLocal').value = evento.local || '';
+    
+    // Preencher pessoas selecionadas
+    if (evento.pessoas) {
+        evento.pessoas.forEach(pessoa => {
+            estadoSistema.pessoasSelecionadas.add(pessoa);
+        });
     }
-}
-
-/**
- * Timeline de próximos eventos
- */
-function atualizarTimeline() {
-    const timeline = document.getElementById('timelineEventos');
-    if (!timeline || !dados?.eventos) return false;
-
-    try {
-        timeline.innerHTML = '';
+    
+    // Preencher tarefas vinculadas
+    if (evento.tarefasRelacionadas) {
+        evento.tarefasRelacionadas.forEach(tarefa => {
+            const key = tarefa.tarefaId ? `${tarefa.atividadeId}_${tarefa.tarefaId}` : `${tarefa.atividadeId}`;
+            estadoSistema.tarefasVinculadas.set(key, { nome: 'Tarefa vinculada' });
+        });
+    }
+    
+    // Configurar recorrência
+    if (evento.recorrencia) {
+        document.getElementById('eventoRecorrente').checked = true;
+        document.getElementById('recorrenciaConfig').classList.remove('hidden');
+        document.getElementById('recorrenciaTipo').value = evento.recorrencia.tipo;
+        document.getElementById('recorrenciaFim').value = evento.recorrencia.fim || '';
         
-        const hoje = new Date();
-        const proximosEventos = [];
-        
-        // Coletar eventos dos próximos 14 dias
-        for (let i = 0; i < 14; i++) {
-            const data = new Date(hoje);
-            data.setDate(hoje.getDate() + i);
-            const dataStr = data.toISOString().split('T')[0];
-            
-            const eventosDia = obterEventosDoDia(dataStr);
-            eventosDia.forEach(evento => {
-                proximosEventos.push({
-                    ...evento,
-                    dataCompleta: dataStr,
-                    diasRestantes: i,
-                    dataObj: data
-                });
+        if (evento.recorrencia.diasSemana) {
+            document.querySelectorAll('#grupoDiasSemana input[type="checkbox"]').forEach(cb => {
+                cb.checked = evento.recorrencia.diasSemana.includes(parseInt(cb.value));
             });
         }
+    }
+    
+    // Atualizar interface
+    atualizarCamposEvento();
+    toggleHorarios();
+    toggleRecorrencia();
+    atualizarListaPessoas();
+    atualizarListaTarefasVinculadas();
+    
+    // Mostrar modal
+    document.getElementById('modalEvento').classList.add('active');
+}
+
+/**
+ * Deleta um evento
+ */
+function deletarEvento(id) {
+    if (confirm('Deseja realmente excluir este evento? Se for recorrente, todas as ocorrências serão removidas.')) {
+        const evento = dados.eventos.find(e => e.id === id);
+        dados.eventos = dados.eventos.filter(e => e.id !== id);
         
-        // Ordenar por data e horário
-        proximosEventos.sort((a, b) => {
-            if (a.dataCompleta !== b.dataCompleta) {
-                return a.dataCompleta.localeCompare(b.dataCompleta);
-            }
-            return (a.horarioInicio || '00:00').localeCompare(b.horarioInicio || '00:00');
-        });
+        salvarDados();
+        gerarCalendario();
+        atualizarEstatisticas();
         
-        // Mostrar apenas os primeiros 8 eventos
-        proximosEventos.slice(0, 8).forEach(evento => {
-            const item = criarItemTimeline(evento);
-            timeline.appendChild(item);
-        });
+        // Atualizar todas as agendas pessoais
+        atualizarTodasAgendasPessoais();
         
-        if (proximosEventos.length === 0) {
-            timeline.innerHTML = `
-                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
-                    📅 Nenhum evento nos próximos 14 dias
-                </div>
-            `;
-        }
-        
-        console.log('🔄 Timeline atualizada:', proximosEventos.length, 'eventos');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Erro ao atualizar timeline:', error);
-        return false;
+        mostrarNotificacao(evento && evento.recorrencia ? 'Evento recorrente excluído!' : 'Evento excluído!');
     }
 }
 
-/**
- * Cria item da timeline
- */
-function criarItemTimeline(evento) {
-    const item = document.createElement('div');
-    item.className = 'timeline-item';
-    
-    // Cores por tipo
-    const cores = {
-        reuniao: 'var(--color-primary)',
-        entrega: 'var(--color-success)',
-        prazo: 'var(--color-danger)',
-        marco: 'var(--color-purple)',
-        outro: 'var(--color-secondary)'
-    };
-    
-    const cor = cores[evento.tipo] || cores.outro;
-    
-    // Textos de prazo
-    let textoPrazo = '';
-    if (evento.diasRestantes === 0) {
-        textoPrazo = 'Hoje';
-    } else if (evento.diasRestantes === 1) {
-        textoPrazo = 'Amanhã';
-    } else {
-        textoPrazo = `Em ${evento.diasRestantes} dias`;
-    }
-    
-    // Tipos legíveis
-    const tiposTexto = {
-        reuniao: 'Reunião',
-        entrega: 'Entrega',
-        prazo: 'Prazo',
-        marco: 'Marco',
-        outro: 'Evento'
-    };
-    
-    const tipoTexto = tiposTexto[evento.tipo] || 'Evento';
-    
-    item.innerHTML = `
-        <div class="timeline-marker" style="border-color: ${cor}; background: ${cor};"></div>
-        <div class="timeline-content">
-            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">
-                ${evento.titulo}
-            </div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">
-                <span style="color: ${cor}; font-weight: 500;">${tipoTexto}</span> • 
-                ${textoPrazo} • 
-                ${formatarData(evento.dataCompleta)}
-                ${evento.diaCompleto ? ' • Dia todo' : ` • ${evento.horarioInicio}`}
-            </div>
-            ${evento.pessoas && evento.pessoas.length > 0 ? `
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                    ${evento.tipo === 'reuniao' ? 'Participantes' : 'Responsáveis'}: 
-                    ${evento.pessoas.slice(0, 3).join(', ')}
-                    ${evento.pessoas.length > 3 ? ` +${evento.pessoas.length - 3}` : ''}
-                </div>
-            ` : ''}
-        </div>
-    `;
-    
-    // Click para editar
-    item.style.cursor = 'pointer';
-    item.onclick = () => {
-        if (typeof editarEvento === 'function') {
-            editarEvento(evento);
-        }
-    };
-    
-    return item;
+// ========== LOG DE CARREGAMENTO ==========
+if (typeof console !== 'undefined') {
+    console.log('📅 Módulo calendario.js carregado com sucesso');
 }
-
-/**
- * Gestão de cache do calendário
- */
-function verificarCacheCalendario(mes, ano) {
-    if (!cacheCalendario.ultimaAtualizacao) return false;
-    
-    const agora = new Date();
-    const tempoDecorrido = agora - cacheCalendario.ultimaAtualizacao;
-    
-    return cacheCalendario.mesAtual === mes &&
-           cacheCalendario.anoAtual === ano &&
-           tempoDecorrido < CALENDARIO_CONFIG.cacheTimeout &&
-           cacheCalendario.htmlCalendario;
-}
-
-function salvarCacheCalendario(mes, ano, html) {
-    cacheCalendario = {
-        mesAtual: mes,
-        anoAtual: ano,
-        htmlCalendario: html,
-        ultimaAtualizacao: new Date()
-    };
-}
-
-function limparCacheCalendario() {
-    cacheCalendario = {
-        mesAtual: null,
-        anoAtual: null,
-        eventos: null,
-        feriados: null,
-        htmlCalendario: null,
-        ultimaAtualizacao: null
-    };
-}
-
-/**
- * Animações do calendário
- */
-function animarCalendario() {
-    const dias = document.querySelectorAll('.dia');
-    
-    dias.forEach((dia, index) => {
-        dia.style.opacity = '0';
-        dia.style.transform = 'scale(0.8)';
-        
-        setTimeout(() => {
-            dia.style.transition = 'all 0.3s ease-out';
-            dia.style.opacity = '1';
-            dia.style.transform = 'scale(1)';
-        }, index * 20);
-    });
-}
-
-/**
- * Utilitários
- */
-function truncarTexto(texto, limite) {
-    if (texto.length <= limite) return texto;
-    return texto.substring(0, limite) + '...';
-}
-
-function formatarData(data) {
-    const d = new Date(data + 'T00:00:00');
-    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-}
-
-/**
- * Event handlers
- */
-function abrirNovoEvento(data) {
-    if (typeof mostrarNovoEvento === 'function') {
-        // Pré-preencher a data
-        const eventoData = document.getElementById('eventoData');
-        if (eventoData) {
-            eventoData.value = data;
-        }
-        mostrarNovoEvento();
-    }
-}
-
-function confirmarExclusaoEvento(evento) {
-    const mensagem = evento.recorrencia ? 
-        'Deseja excluir este evento recorrente? Todas as ocorrências serão removidas.' :
-        'Deseja excluir este evento?';
-        
-    if (confirm(mensagem)) {
-        if (typeof deletarEvento === 'function') {
-            deletarEvento(evento.id);
-        }
-    }
-}
-
-function mostrarEventosDia(data, eventos) {
-    // Implementar modal com todos os eventos do dia
-    console.log('Mostrar todos os eventos do dia:', data, eventos);
-}
-
-/**
- * Tratamento de erros
- */
-function mostrarErroCalendario(erro) {
-    const container = document.getElementById('calendario');
-    if (container) {
-        container.innerHTML = `
-            <div style="grid-column: span 7; text-align: center; padding: 40px;">
-                <div style="font-size: 48px; margin-bottom: 20px;">📅</div>
-                <h3 style="color: var(--color-danger); margin-bottom: 16px;">Erro no Calendário</h3>
-                <p style="color: var(--text-secondary);">
-                    Não foi possível carregar o calendário. Verifique os dados.
-                </p>
-                <button class="btn btn-primary" onclick="gerarCalendario()" style="margin-top: 16px;">
-                    🔄 Tentar Novamente
-                </button>
-            </div>
-        `;
-    }
-}
-
-/**
- * Exposição global para compatibilidade
- */
-if (typeof window !== 'undefined') {
-    window.gerarCalendario = gerarCalendario;
-    window.mudarMes = mudarMes;
-    window.atualizarTimeline = atualizarTimeline;
-    window.obterEventosDoDia = obterEventosDoDia;
-    window.verificarRecorrencia = verificarRecorrencia;
-    window.limparCacheCalendario = limparCacheCalendario;
-    window.formatarData = formatarData;
-}
-
-console.log('✅ Módulo calendario.js carregado com sucesso'); 
