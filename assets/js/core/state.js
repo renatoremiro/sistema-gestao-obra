@@ -1,5 +1,5 @@
 /* ==========================================================================
-   GESTÃO DO ESTADO GLOBAL - Sistema de Gestão v5.1
+   GESTÃO DO ESTADO GLOBAL - Sistema de Gestão v5.1 - CORRIGIDO
    ========================================================================== */
 
 /**
@@ -50,10 +50,10 @@ let estadoSistema = {
 };
 
 /**
- * Dados do Sistema
+ * Dados do Sistema - CORRIGIDO: Inicialização automática
  * Estrutura principal dos dados da aplicação
  */
-let dados = null;
+let dados = null; // Será inicializado automaticamente
 
 /**
  * Inicializa os dados padrão do sistema
@@ -373,7 +373,7 @@ function atualizarEstado(chave, valor) {
         estadoSistema[chave] = valor;
         
         // Registrar debug se necessário
-        if (SISTEMA_CONSTANTS.DEBUG_MODE) {
+        if (typeof SISTEMA_CONSTANTS !== 'undefined' && SISTEMA_CONSTANTS.DEBUG_MODE) {
             console.log(`🔄 Estado atualizado: ${chave} = ${valor}`);
         }
         
@@ -609,7 +609,7 @@ function debounceAutoSave() {
             salvarDados();
             estadoSistema.contadorSalvamentos++;
         }
-    }, SISTEMA_CONSTANTS.INTERVALO_SALVAMENTO || 5000);
+    }, (typeof SISTEMA_CONSTANTS !== 'undefined' && SISTEMA_CONSTANTS.INTERVALO_SALVAMENTO) || 5000);
 }
 
 /**
@@ -749,6 +749,30 @@ function deserializarEstado(estadoString) {
 }
 
 /**
+ * ========== CORREÇÃO CRÍTICA: AUTO-INICIALIZAÇÃO DOS DADOS ==========
+ */
+
+/**
+ * Força inicialização dos dados se estiverem null
+ */
+function garantirDadosInicializados() {
+    if (dados === null) {
+        console.log('🔧 CORREÇÃO: Inicializando dados automaticamente...');
+        dados = inicializarDados();
+        console.log('✅ CORREÇÃO: Dados inicializados com sucesso!');
+        
+        // Validar integridade após inicialização
+        const problemas = validarIntegridadeDados();
+        if (problemas.length === 0) {
+            console.log('✅ CORREÇÃO: Integridade dos dados confirmada!');
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+/**
  * Exposição global para compatibilidade
  */
 if (typeof window !== 'undefined') {
@@ -759,6 +783,31 @@ if (typeof window !== 'undefined') {
     window.obterEstado = obterEstado;
     window.debugEstado = debugEstado;
     window.validarIntegridadeDados = validarIntegridadeDados;
+    window.garantirDadosInicializados = garantirDadosInicializados;
+    window.dadosCarregados = dadosCarregados;
+    window.navegarParaArea = navegarParaArea;
+    window.navegarParaPessoa = navegarParaPessoa;
+    window.voltarDashboard = voltarDashboard;
 }
 
-console.log('✅ Módulo state.js carregado com sucesso');
+/**
+ * ========== AUTO-INICIALIZAÇÃO CRÍTICA ==========
+ * CORREÇÃO: Inicializar dados automaticamente quando módulo carregar
+ */
+
+// Aguardar DOM estar pronto antes de inicializar
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            garantirDadosInicializados();
+        });
+    } else {
+        // DOM já está pronto - inicializar imediatamente
+        garantirDadosInicializados();
+    }
+} else {
+    // Ambiente sem DOM - inicializar imediatamente
+    garantirDadosInicializados();
+}
+
+console.log('✅ Módulo state.js carregado com sucesso - VERSÃO CORRIGIDA');
