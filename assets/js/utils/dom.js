@@ -1,800 +1,652 @@
-/* ==========================================================================
-   UTILITÁRIOS DOM - Sistema de Gestão v5.1
-   ========================================================================== */
-
 /**
- * Módulo responsável por todas as operações de manipulação do DOM
- * Fornece funções utilitárias para interagir com elementos HTML
+ * MÓDULO DOM - Sistema de Gestão v5.1
+ * Responsável pela manipulação segura do DOM
  */
 
-/**
- * ========== SELETORES E BUSCA DE ELEMENTOS ==========
- */
+// ========== UTILITÁRIOS DOM ==========
 
 /**
- * Seleciona elemento por ID com verificação de existência
- * @param {string} id - ID do elemento
- * @returns {HTMLElement|null} Elemento encontrado ou null
+ * Busca elemento de forma segura
+ * @param {string} selector - Seletor CSS ou ID
+ * @param {Element} context - Contexto de busca (opcional)
+ * @returns {Element|null} - Elemento encontrado ou null
  */
-function getElementById(id) {
-    const elemento = document.getElementById(id);
-    if (!elemento) {
-        console.warn(`Elemento com ID '${id}' não encontrado`);
+function buscarElemento(selector, context = document) {
+    try {
+        if (selector.startsWith('#')) {
+            return context.getElementById(selector.substring(1));
+        }
+        return context.querySelector(selector);
+    } catch (error) {
+        if (typeof console !== 'undefined') {
+            console.warn(`❌ Erro ao buscar elemento '${selector}':`, error.message);
+        }
+        return null;
     }
-    return elemento;
 }
 
 /**
- * Seleciona elementos por classe
+ * Busca múltiplos elementos de forma segura
+ * @param {string} selector - Seletor CSS
+ * @param {Element} context - Contexto de busca (opcional)
+ * @returns {NodeList} - Lista de elementos encontrados
+ */
+function buscarElementos(selector, context = document) {
+    try {
+        return context.querySelectorAll(selector);
+    } catch (error) {
+        if (typeof console !== 'undefined') {
+            console.warn(`❌ Erro ao buscar elementos '${selector}':`, error.message);
+        }
+        return [];
+    }
+}
+
+/**
+ * Adiciona event listener de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} eventType - Tipo do evento
+ * @param {Function} handler - Função handler
+ * @param {boolean|object} options - Opções do event listener
+ */
+function adicionarEventListener(elementOrSelector, eventType, handler, options = false) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento && typeof handler === 'function') {
+        try {
+            elemento.addEventListener(eventType, handler, options);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao adicionar event listener para '${eventType}':`, error.message);
+            }
+        }
+    }
+}
+
+/**
+ * Remove event listener de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} eventType - Tipo do evento
+ * @param {Function} handler - Função handler
+ */
+function removerEventListener(elementOrSelector, eventType, handler) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento && typeof handler === 'function') {
+        try {
+            elemento.removeEventListener(eventType, handler);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao remover event listener para '${eventType}':`, error.message);
+            }
+        }
+    }
+}
+
+/**
+ * Define atributo de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} attribute - Nome do atributo
+ * @param {string} value - Valor do atributo
+ */
+function definirAtributo(elementOrSelector, attribute, value) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento) {
+        try {
+            elemento.setAttribute(attribute, value);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao definir atributo '${attribute}':`, error.message);
+            }
+        }
+    }
+}
+
+/**
+ * Define conteúdo de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} content - Conteúdo HTML ou texto
+ * @param {boolean} isHTML - Se true, usa innerHTML; se false, usa textContent
+ */
+function definirConteudo(elementOrSelector, content, isHTML = true) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento) {
+        try {
+            if (isHTML) {
+                elemento.innerHTML = content;
+            } else {
+                elemento.textContent = content;
+            }
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao definir conteúdo:`, error.message);
+            }
+        }
+    }
+}
+
+/**
+ * Adiciona classe de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
  * @param {string} className - Nome da classe
- * @param {HTMLElement} container - Container de busca (opcional)
- * @returns {NodeList} Lista de elementos encontrados
  */
-function getElementsByClass(className, container = document) {
-    return container.querySelectorAll(`.${className}`);
-}
-
-/**
- * Seleciona elemento por seletor CSS com verificação
- * @param {string} selector - Seletor CSS
- * @param {HTMLElement} container - Container de busca (opcional)
- * @returns {HTMLElement|null} Primeiro elemento encontrado ou null
- */
-function querySelector(selector, container = document) {
-    const elemento = container.querySelector(selector);
-    if (!elemento) {
-        console.warn(`Elemento com seletor '${selector}' não encontrado`);
+function adicionarClasse(elementOrSelector, className) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
     }
-    return elemento;
-}
-
-/**
- * Seleciona todos os elementos por seletor CSS
- * @param {string} selector - Seletor CSS
- * @param {HTMLElement} container - Container de busca (opcional)
- * @returns {NodeList} Lista de elementos encontrados
- */
-function querySelectorAll(selector, container = document) {
-    return container.querySelectorAll(selector);
-}
-
-/**
- * ========== MANIPULAÇÃO DE CLASSES CSS ==========
- */
-
-/**
- * Adiciona classe a um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string|Array} classes - Classe ou array de classes
- */
-function addClass(elemento, classes) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
     
-    const classArray = Array.isArray(classes) ? classes : [classes];
-    classArray.forEach(classe => {
-        if (classe && !el.classList.contains(classe)) {
-            el.classList.add(classe);
+    if (elemento && className) {
+        try {
+            elemento.classList.add(className);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao adicionar classe '${className}':`, error.message);
+            }
         }
-    });
+    }
 }
 
 /**
- * Remove classe de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string|Array} classes - Classe ou array de classes
+ * Remove classe de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} className - Nome da classe
  */
-function removeClass(elemento, classes) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
+function removerClasse(elementOrSelector, className) {
+    let elemento;
     
-    const classArray = Array.isArray(classes) ? classes : [classes];
-    classArray.forEach(classe => {
-        if (classe && el.classList.contains(classe)) {
-            el.classList.remove(classe);
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento && className) {
+        try {
+            elemento.classList.remove(className);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao remover classe '${className}':`, error.message);
+            }
         }
-    });
+    }
 }
 
 /**
- * Alterna classe em um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} classe - Classe a alternar
- * @returns {boolean} True se classe foi adicionada, false se removida
+ * Toggle classe de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} className - Nome da classe
+ * @returns {boolean} - Se a classe foi adicionada (true) ou removida (false)
  */
-function toggleClass(elemento, classe) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || !classe) return false;
+function toggleClasse(elementOrSelector, className) {
+    let elemento;
     
-    return el.classList.toggle(classe);
-}
-
-/**
- * Verifica se elemento possui uma classe
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} classe - Classe a verificar
- * @returns {boolean} True se possui a classe
- */
-function hasClass(elemento, classe) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || !classe) return false;
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
     
-    return el.classList.contains(classe);
+    if (elemento && className) {
+        try {
+            return elemento.classList.toggle(className);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao toggle classe '${className}':`, error.message);
+            }
+            return false;
+        }
+    }
+    return false;
 }
 
 /**
- * ========== MANIPULAÇÃO DE CONTEÚDO ==========
+ * Verifica se elemento tem classe
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {string} className - Nome da classe
+ * @returns {boolean} - Se o elemento tem a classe
  */
-
-/**
- * Define o conteúdo HTML de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} html - Conteúdo HTML
- */
-function setHTML(elemento, html) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
+function temClasse(elementOrSelector, className) {
+    let elemento;
     
-    el.innerHTML = html;
-}
-
-/**
- * Obtém o conteúdo HTML de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {string} Conteúdo HTML
- */
-function getHTML(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    return el ? el.innerHTML : '';
-}
-
-/**
- * Define o texto de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} texto - Texto a definir
- */
-function setText(elemento, texto) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
     
-    el.textContent = texto;
+    if (elemento && className) {
+        try {
+            return elemento.classList.contains(className);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao verificar classe '${className}':`, error.message);
+            }
+            return false;
+        }
+    }
+    return false;
 }
 
 /**
- * Obtém o texto de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {string} Texto do elemento
+ * Cria elemento de forma segura
+ * @param {string} tagName - Nome da tag
+ * @param {object} options - Opções do elemento
+ * @returns {Element} - Elemento criado
  */
-function getText(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    return el ? el.textContent : '';
+function criarElemento(tagName, options = {}) {
+    try {
+        const elemento = document.createElement(tagName);
+        
+        // Adicionar classes
+        if (options.classes) {
+            if (Array.isArray(options.classes)) {
+                elemento.classList.add(...options.classes);
+            } else {
+                elemento.className = options.classes;
+            }
+        }
+        
+        // Adicionar atributos
+        if (options.attributes) {
+            Object.entries(options.attributes).forEach(([key, value]) => {
+                elemento.setAttribute(key, value);
+            });
+        }
+        
+        // Definir conteúdo
+        if (options.html) {
+            elemento.innerHTML = options.html;
+        } else if (options.text) {
+            elemento.textContent = options.text;
+        }
+        
+        // Adicionar event listeners
+        if (options.events) {
+            Object.entries(options.events).forEach(([eventType, handler]) => {
+                elemento.addEventListener(eventType, handler);
+            });
+        }
+        
+        return elemento;
+    } catch (error) {
+        if (typeof console !== 'undefined') {
+            console.warn(`❌ Erro ao criar elemento '${tagName}':`, error.message);
+        }
+        return document.createElement('div'); // Fallback
+    }
 }
 
 /**
- * ========== MANIPULAÇÃO DE ATRIBUTOS ==========
+ * Remove elemento de forma segura
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
  */
-
-/**
- * Define atributo de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} atributo - Nome do atributo
- * @param {string} valor - Valor do atributo
- */
-function setAttribute(elemento, atributo, valor) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || !atributo) return;
+function removerElemento(elementOrSelector) {
+    let elemento;
     
-    el.setAttribute(atributo, valor);
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento && elemento.parentNode) {
+        try {
+            elemento.parentNode.removeChild(elemento);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao remover elemento:`, error.message);
+            }
+        }
+    }
 }
 
 /**
- * Obtém valor de atributo
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} atributo - Nome do atributo
- * @returns {string|null} Valor do atributo
+ * Adiciona elemento filho de forma segura
+ * @param {string|Element} parentOrSelector - Elemento pai ou seletor
+ * @param {Element} child - Elemento filho
  */
-function getAttribute(elemento, atributo) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || !atributo) return null;
+function adicionarFilho(parentOrSelector, child) {
+    let parent;
     
-    return el.getAttribute(atributo);
+    if (typeof parentOrSelector === 'string') {
+        parent = buscarElemento(parentOrSelector);
+    } else {
+        parent = parentOrSelector;
+    }
+    
+    if (parent && child) {
+        try {
+            parent.appendChild(child);
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao adicionar elemento filho:`, error.message);
+            }
+        }
+    }
 }
 
 /**
- * Remove atributo de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} atributo - Nome do atributo
+ * Limpa conteúdo de um elemento
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
  */
-function removeAttribute(elemento, atributo) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || !atributo) return;
+function limparElemento(elementOrSelector) {
+    let elemento;
     
-    el.removeAttribute(atributo);
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (elemento) {
+        try {
+            elemento.innerHTML = '';
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao limpar elemento:`, error.message);
+            }
+        }
+    }
 }
 
 /**
- * ========== MANIPULAÇÃO DE VALORES DE CAMPOS ==========
+ * Aguarda elemento aparecer no DOM
+ * @param {string} selector - Seletor do elemento
+ * @param {number} timeout - Timeout em milissegundos
+ * @returns {Promise<Element>} - Promise que resolve com o elemento
  */
-
-/**
- * Define valor de um campo de formulário
- * @param {HTMLElement|string} campo - Campo ou ID do campo
- * @param {string|number|boolean} valor - Valor a definir
- */
-function setValue(campo, valor) {
-    const el = typeof campo === 'string' ? getElementById(campo) : campo;
-    if (!el) return;
-    
-    if (el.type === 'checkbox' || el.type === 'radio') {
-        el.checked = Boolean(valor);
-    } else if (el.tagName.toLowerCase() === 'select' && el.multiple) {
-        // Para select múltiplo
-        Array.from(el.options).forEach(option => {
-            option.selected = Array.isArray(valor) ? valor.includes(option.value) : false;
+function aguardarElemento(selector, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const elemento = buscarElemento(selector);
+        if (elemento) {
+            resolve(elemento);
+            return;
+        }
+        
+        const observer = new MutationObserver((mutations, obs) => {
+            const elemento = buscarElemento(selector);
+            if (elemento) {
+                obs.disconnect();
+                resolve(elemento);
+            }
         });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timeout: Elemento '${selector}' não encontrado em ${timeout}ms`));
+        }, timeout);
+    });
+}
+
+/**
+ * Verifica se elemento está visível
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @returns {boolean} - Se o elemento está visível
+ */
+function estaVisivel(elementOrSelector) {
+    let elemento;
+    
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
     } else {
-        el.value = valor;
+        elemento = elementOrSelector;
     }
-}
-
-/**
- * Obtém valor de um campo de formulário
- * @param {HTMLElement|string} campo - Campo ou ID do campo
- * @returns {string|boolean|Array} Valor do campo
- */
-function getValue(campo) {
-    const el = typeof campo === 'string' ? getElementById(campo) : campo;
-    if (!el) return '';
     
-    if (el.type === 'checkbox' || el.type === 'radio') {
-        return el.checked;
-    } else if (el.tagName.toLowerCase() === 'select' && el.multiple) {
-        return Array.from(el.selectedOptions).map(option => option.value);
-    } else {
-        return el.value;
-    }
-}
-
-/**
- * Limpa valor de um campo
- * @param {HTMLElement|string} campo - Campo ou ID do campo
- */
-function clearValue(campo) {
-    const el = typeof campo === 'string' ? getElementById(campo) : campo;
-    if (!el) return;
+    if (!elemento) return false;
     
-    if (el.type === 'checkbox' || el.type === 'radio') {
-        el.checked = false;
-    } else if (el.tagName.toLowerCase() === 'select') {
-        el.selectedIndex = 0;
-    } else {
-        el.value = '';
-    }
-}
-
-/**
- * ========== VISIBILIDADE E ESTADO ==========
- */
-
-/**
- * Mostra elemento removendo classe 'hidden'
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- */
-function show(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    removeClass(el, 'hidden');
-    el.style.display = '';
-}
-
-/**
- * Esconde elemento adicionando classe 'hidden'
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- */
-function hide(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    addClass(el, 'hidden');
-}
-
-/**
- * Alterna visibilidade de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {boolean} True se ficou visível, false se ficou oculto
- */
-function toggle(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return false;
-    
-    const isHidden = hasClass(el, 'hidden');
-    if (isHidden) {
-        show(el);
-        return true;
-    } else {
-        hide(el);
+    try {
+        const style = window.getComputedStyle(elemento);
+        return style.display !== 'none' && 
+               style.visibility !== 'hidden' && 
+               style.opacity !== '0' &&
+               elemento.offsetWidth > 0 && 
+               elemento.offsetHeight > 0;
+    } catch (error) {
+        if (typeof console !== 'undefined') {
+            console.warn(`❌ Erro ao verificar visibilidade:`, error.message);
+        }
         return false;
     }
 }
 
 /**
- * Verifica se elemento está visível
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {boolean} True se visível
+ * Scroll suave para elemento
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @param {object} options - Opções de scroll
  */
-function isVisible(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return false;
+function scrollParaElemento(elementOrSelector, options = {}) {
+    let elemento;
     
-    return !hasClass(el, 'hidden') && el.style.display !== 'none';
-}
-
-/**
- * ========== CRIAÇÃO E MANIPULAÇÃO DE ELEMENTOS ==========
- */
-
-/**
- * Cria novo elemento HTML
- * @param {string} tag - Tag do elemento
- * @param {Object} options - Opções do elemento
- * @param {string} options.id - ID do elemento
- * @param {string|Array} options.className - Classes CSS
- * @param {string} options.innerHTML - Conteúdo HTML
- * @param {string} options.textContent - Conteúdo de texto
- * @param {Object} options.attributes - Atributos do elemento
- * @param {Object} options.styles - Estilos CSS
- * @returns {HTMLElement} Elemento criado
- */
-function createElement(tag, options = {}) {
-    const elemento = document.createElement(tag);
-    
-    if (options.id) {
-        elemento.id = options.id;
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
     }
     
-    if (options.className) {
-        const classes = Array.isArray(options.className) ? options.className : [options.className];
-        classes.forEach(classe => elemento.classList.add(classe));
-    }
-    
-    if (options.innerHTML) {
-        elemento.innerHTML = options.innerHTML;
-    } else if (options.textContent) {
-        elemento.textContent = options.textContent;
-    }
-    
-    if (options.attributes) {
-        Object.entries(options.attributes).forEach(([attr, value]) => {
-            elemento.setAttribute(attr, value);
-        });
-    }
-    
-    if (options.styles) {
-        Object.entries(options.styles).forEach(([style, value]) => {
-            elemento.style[style] = value;
-        });
-    }
-    
-    return elemento;
-}
-
-/**
- * Remove elemento do DOM
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- */
-function removeElement(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (el && el.parentNode) {
-        el.parentNode.removeChild(el);
-    }
-}
-
-/**
- * Insere elemento antes de outro
- * @param {HTMLElement} novoElemento - Elemento a inserir
- * @param {HTMLElement|string} elementoReferencia - Elemento de referência
- */
-function insertBefore(novoElemento, elementoReferencia) {
-    const ref = typeof elementoReferencia === 'string' ? getElementById(elementoReferencia) : elementoReferencia;
-    if (ref && ref.parentNode) {
-        ref.parentNode.insertBefore(novoElemento, ref);
-    }
-}
-
-/**
- * Insere elemento após outro
- * @param {HTMLElement} novoElemento - Elemento a inserir
- * @param {HTMLElement|string} elementoReferencia - Elemento de referência
- */
-function insertAfter(novoElemento, elementoReferencia) {
-    const ref = typeof elementoReferencia === 'string' ? getElementById(elementoReferencia) : elementoReferencia;
-    if (ref && ref.parentNode) {
-        ref.parentNode.insertBefore(novoElemento, ref.nextSibling);
-    }
-}
-
-/**
- * ========== EVENTOS ==========
- */
-
-/**
- * Adiciona event listener a um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} evento - Nome do evento
- * @param {Function} callback - Função callback
- * @param {Object|boolean} options - Opções do evento
- */
-function addEventListener(elemento, evento, callback, options = false) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || typeof callback !== 'function') return;
-    
-    el.addEventListener(evento, callback, options);
-}
-
-/**
- * Remove event listener de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} evento - Nome do evento
- * @param {Function} callback - Função callback
- */
-function removeEventListener(elemento, evento, callback) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el || typeof callback !== 'function') return;
-    
-    el.removeEventListener(evento, callback);
-}
-
-/**
- * Dispara evento customizado
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {string} nomeEvento - Nome do evento
- * @param {Object} detalhes - Dados do evento
- */
-function dispatchEvent(elemento, nomeEvento, detalhes = {}) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    const evento = new CustomEvent(nomeEvento, {
-        detail: detalhes,
-        bubbles: true,
-        cancelable: true
-    });
-    
-    el.dispatchEvent(evento);
-}
-
-/**
- * ========== FORMULÁRIOS ==========
- */
-
-/**
- * Obtém dados de um formulário
- * @param {HTMLFormElement|string} formulario - Formulário ou ID do formulário
- * @returns {Object} Objeto com os dados do formulário
- */
-function getFormData(formulario) {
-    const form = typeof formulario === 'string' ? getElementById(formulario) : formulario;
-    if (!form) return {};
-    
-    const formData = new FormData(form);
-    const dados = {};
-    
-    for (let [key, value] of formData.entries()) {
-        if (dados[key]) {
-            // Se já existe, transformar em array
-            if (!Array.isArray(dados[key])) {
-                dados[key] = [dados[key]];
+    if (elemento) {
+        try {
+            elemento.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest',
+                ...options
+            });
+        } catch (error) {
+            if (typeof console !== 'undefined') {
+                console.warn(`❌ Erro ao fazer scroll para elemento:`, error.message);
             }
-            dados[key].push(value);
-        } else {
-            dados[key] = value;
         }
     }
-    
-    return dados;
-}
-
-/**
- * Preenche formulário com dados
- * @param {HTMLFormElement|string} formulario - Formulário ou ID do formulário
- * @param {Object} dados - Dados para preencher
- */
-function setFormData(formulario, dados) {
-    const form = typeof formulario === 'string' ? getElementById(formulario) : formulario;
-    if (!form || !dados) return;
-    
-    Object.entries(dados).forEach(([name, value]) => {
-        const campo = form.querySelector(`[name="${name}"]`);
-        if (campo) {
-            setValue(campo, value);
-        }
-    });
-}
-
-/**
- * Limpa todos os campos de um formulário
- * @param {HTMLFormElement|string} formulario - Formulário ou ID do formulário
- */
-function clearForm(formulario) {
-    const form = typeof formulario === 'string' ? getElementById(formulario) : formulario;
-    if (!form) return;
-    
-    const campos = form.querySelectorAll('input, select, textarea');
-    campos.forEach(campo => clearValue(campo));
-}
-
-/**
- * ========== ANIMAÇÕES E TRANSIÇÕES ==========
- */
-
-/**
- * Fade in em um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {number} duracao - Duração em ms (padrão: 300)
- */
-function fadeIn(elemento, duracao = 300) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    el.style.opacity = '0';
-    el.style.display = '';
-    removeClass(el, 'hidden');
-    
-    el.style.transition = `opacity ${duracao}ms ease-out`;
-    
-    // Force reflow
-    el.offsetHeight;
-    
-    el.style.opacity = '1';
-    
-    setTimeout(() => {
-        el.style.transition = '';
-    }, duracao);
-}
-
-/**
- * Fade out em um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {number} duracao - Duração em ms (padrão: 300)
- */
-function fadeOut(elemento, duracao = 300) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    el.style.transition = `opacity ${duracao}ms ease-out`;
-    el.style.opacity = '0';
-    
-    setTimeout(() => {
-        hide(el);
-        el.style.transition = '';
-        el.style.opacity = '';
-    }, duracao);
-}
-
-/**
- * Slide down (mostrar com animação)
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {number} duracao - Duração em ms (padrão: 300)
- */
-function slideDown(elemento, duracao = 300) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    el.style.height = '0';
-    el.style.overflow = 'hidden';
-    el.style.display = '';
-    removeClass(el, 'hidden');
-    
-    const altura = el.scrollHeight;
-    
-    el.style.transition = `height ${duracao}ms ease-out`;
-    el.style.height = altura + 'px';
-    
-    setTimeout(() => {
-        el.style.height = '';
-        el.style.overflow = '';
-        el.style.transition = '';
-    }, duracao);
-}
-
-/**
- * Slide up (esconder com animação)
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {number} duracao - Duração em ms (padrão: 300)
- */
-function slideUp(elemento, duracao = 300) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    const altura = el.scrollHeight;
-    el.style.height = altura + 'px';
-    el.style.overflow = 'hidden';
-    
-    // Force reflow
-    el.offsetHeight;
-    
-    el.style.transition = `height ${duracao}ms ease-out`;
-    el.style.height = '0';
-    
-    setTimeout(() => {
-        hide(el);
-        el.style.height = '';
-        el.style.overflow = '';
-        el.style.transition = '';
-    }, duracao);
-}
-
-/**
- * ========== UTILITÁRIOS DE POSIÇÃO E DIMENSÃO ==========
- */
-
-/**
- * Obtém posição de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {Object} Objeto com posições {top, left, right, bottom}
- */
-function getPosition(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return { top: 0, left: 0, right: 0, bottom: 0 };
-    
-    const rect = el.getBoundingClientRect();
-    return {
-        top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX,
-        right: rect.right + window.scrollX,
-        bottom: rect.bottom + window.scrollY
-    };
 }
 
 /**
  * Obtém dimensões de um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @returns {Object} Objeto com dimensões {width, height}
+ * @param {string|Element} elementOrSelector - Elemento ou seletor
+ * @returns {object} - Objeto com dimensões
  */
-function getDimensions(elemento) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return { width: 0, height: 0 };
+function obterDimensoes(elementOrSelector) {
+    let elemento;
     
-    return {
-        width: el.offsetWidth,
-        height: el.offsetHeight
+    if (typeof elementOrSelector === 'string') {
+        elemento = buscarElemento(elementOrSelector);
+    } else {
+        elemento = elementOrSelector;
+    }
+    
+    if (!elemento) {
+        return { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 };
+    }
+    
+    try {
+        const rect = elemento.getBoundingClientRect();
+        return {
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            left: rect.left,
+            right: rect.right,
+            bottom: rect.bottom
+        };
+    } catch (error) {
+        if (typeof console !== 'undefined') {
+            console.warn(`❌ Erro ao obter dimensões:`, error.message);
+        }
+        return { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 };
+    }
+}
+
+/**
+ * Debounce para eventos DOM
+ * @param {Function} func - Função a ser executada
+ * @param {number} delay - Delay em milissegundos
+ * @returns {Function} - Função com debounce
+ */
+function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
     };
 }
 
 /**
- * Rola página até um elemento
- * @param {HTMLElement|string} elemento - Elemento ou ID do elemento
- * @param {Object} options - Opções de rolagem
+ * Throttle para eventos DOM
+ * @param {Function} func - Função a ser executada
+ * @param {number} delay - Delay em milissegundos
+ * @returns {Function} - Função com throttle
  */
-function scrollToElement(elemento, options = {}) {
-    const el = typeof elemento === 'string' ? getElementById(elemento) : elemento;
-    if (!el) return;
-    
-    const defaultOptions = {
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
+function throttle(func, delay) {
+    let timeoutId;
+    let lastExecTime = 0;
+    return function(...args) {
+        const currentTime = Date.now();
+        
+        if (currentTime - lastExecTime > delay) {
+            func.apply(this, args);
+            lastExecTime = currentTime;
+        } else {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+                lastExecTime = Date.now();
+            }, delay - (currentTime - lastExecTime));
+        }
     };
-    
-    el.scrollIntoView({ ...defaultOptions, ...options });
 }
+
+// ========== CONFIGURAÇÃO DE EVENTOS GLOBAIS ==========
 
 /**
- * ========== EXPORTAÇÃO DAS FUNÇÕES ==========
+ * Configura eventos globais do sistema
  */
-
-// Se estiver em ambiente de módulos, exportar
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        // Seletores
-        getElementById,
-        getElementsByClass,
-        querySelector,
-        querySelectorAll,
+function configurarEventosGlobais() {
+    // Atalhos de teclado
+    adicionarEventListener(document, 'keydown', function(e) {
+        // Ctrl+S para salvar
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            if (typeof salvarDados === 'function') {
+                salvarDados();
+                if (typeof mostrarNotificacao === 'function') {
+                    mostrarNotificacao('Dados salvos!');
+                }
+            }
+        }
         
-        // Classes
-        addClass,
-        removeClass,
-        toggleClass,
-        hasClass,
+        // Escape para fechar modais
+        if (e.key === 'Escape') {
+            buscarElementos('.modal.active').forEach(modal => {
+                if (typeof fecharModal === 'function') {
+                    fecharModal(modal.id);
+                }
+            });
+        }
         
-        // Conteúdo
-        setHTML,
-        getHTML,
-        setText,
-        getText,
-        
-        // Atributos
-        setAttribute,
-        getAttribute,
-        removeAttribute,
-        
-        // Valores
-        setValue,
-        getValue,
-        clearValue,
-        
-        // Visibilidade
-        show,
-        hide,
-        toggle,
-        isVisible,
-        
-        // Elementos
-        createElement,
-        removeElement,
-        insertBefore,
-        insertAfter,
-        
-        // Eventos
-        addEventListener,
-        removeEventListener,
-        dispatchEvent,
-        
-        // Formulários
-        getFormData,
-        setFormData,
-        clearForm,
-        
-        // Animações
-        fadeIn,
-        fadeOut,
-        slideDown,
-        slideUp,
-        
-        // Posição
-        getPosition,
-        getDimensions,
-        scrollToElement
-    };
+        // Ctrl+Shift+I para verificar integridade do sistema
+        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+            e.preventDefault();
+            if (typeof verificarIntegridadeSistema === 'function') {
+                verificarIntegridadeSistema();
+            }
+        }
+    });
+    
+    // Fechar modais clicando fora
+    adicionarEventListener(document, 'click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            if (typeof fecharModal === 'function') {
+                fecharModal(e.target.id);
+            }
+        }
+    });
+    
+    // Salvar dados ao sair da página
+    adicionarEventListener(window, 'beforeunload', function(e) {
+        if (typeof usuarioAtual !== 'undefined' && usuarioAtual && typeof salvarDados === 'function') {
+            salvarDados();
+        }
+    });
+    
+    // Otimizar performance no resize
+    const resizeHandler = throttle(function() {
+        if (typeof otimizarDesempenho === 'function') {
+            otimizarDesempenho();
+        }
+    }, 250);
+    
+    adicionarEventListener(window, 'resize', resizeHandler);
+    
+    // Detectar mudanças de visibilidade da página
+    adicionarEventListener(document, 'visibilitychange', function() {
+        if (document.hidden) {
+            // Página ficou oculta - parar operações pesadas
+            if (typeof console !== 'undefined') {
+                console.log('📱 Página oculta - pausando operações');
+            }
+        } else {
+            // Página ficou visível - retomar operações
+            if (typeof console !== 'undefined') {
+                console.log('📱 Página visível - retomando operações');
+            }
+            if (typeof verificarIntegridadeSistema === 'function') {
+                verificarIntegridadeSistema();
+            }
+        }
+    });
 }
 
-// Disponibilizar globalmente se não estiver em módulo
-if (typeof window !== 'undefined') {
-    window.DOMUtils = {
-        getElementById,
-        getElementsByClass,
-        querySelector,
-        querySelectorAll,
-        addClass,
-        removeClass,
-        toggleClass,
-        hasClass,
-        setHTML,
-        getHTML,
-        setText,
-        getText,
-        setAttribute,
-        getAttribute,
-        removeAttribute,
-        setValue,
-        getValue,
-        clearValue,
-        show,
-        hide,
-        toggle,
-        isVisible,
-        createElement,
-        removeElement,
-        insertBefore,
-        insertAfter,
-        addEventListener,
-        removeEventListener,
-        dispatchEvent,
-        getFormData,
-        setFormData,
-        clearForm,
-        fadeIn,
-        fadeOut,
-        slideDown,
-        slideUp,
-        getPosition,
-        getDimensions,
-        scrollToElement
-    };
+// ========== INICIALIZAÇÃO ==========
+
+/**
+ * Inicializa o módulo DOM quando o documento estiver pronto
+ */
+function inicializarModuloDOM() {
+    if (document.readyState === 'loading') {
+        adicionarEventListener(document, 'DOMContentLoaded', configurarEventosGlobais);
+    } else {
+        configurarEventosGlobais();
+    }
 }
 
-/* ==========================================================================
-   FIM DO MÓDULO DOM - Sistema de Gestão v5.1
-   ========================================================================== */ 
+// Inicializar automaticamente
+inicializarModuloDOM();
+
+// ========== LOG DE CARREGAMENTO ==========
+if (typeof console !== 'undefined') {
+    console.log('🎨 Módulo dom.js carregado com sucesso');
+}
