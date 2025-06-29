@@ -165,4 +165,28 @@ if (typeof window !== 'undefined') {
     window.getFirebaseInfo = getFirebaseInfo;
     window.limparListenersFirebase = limparListenersFirebase;
     window.debugFirebase = debugFirebase;
-} 
+}
+/**
+ * ========== INICIALIZAÇÃO AUTOMÁTICA ==========
+ */
+
+// Aguardar que o DOM esteja pronto e então inicializar o Firebase
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            initializeFirebase();
+        } catch (error) {
+            console.error('❌ Erro na inicialização automática do Firebase:', error);
+        }
+    });
+} else {
+    // DOM já carregado - inicializar imediatamente
+    try {
+        initializeFirebase();
+    } catch (error) {
+        console.error('❌ Erro na inicialização automática do Firebase:', error);
+    }
+}
+
+console.log('🔥 Firebase configurado para inicialização automática');
+ 
