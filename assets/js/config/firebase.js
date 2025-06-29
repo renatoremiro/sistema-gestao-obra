@@ -187,6 +187,139 @@ if (document.readyState === 'loading') {
         console.error('❌ Erro na inicialização automática do Firebase:', error);
     }
 }
+/**
+ * CORREÇÃO FIREBASE - Adicionar ao final do assets/js/config/firebase.js
+ * Para garantir compatibilidade com o código original
+ */
 
+// ========== COMPATIBILIDADE COM CÓDIGO ORIGINAL ==========
+
+/**
+ * Aguardar Firebase estar totalmente carregado e então configurar variáveis globais
+ */
+function aguardarFirebaseEConfigurar() {
+    return new Promise((resolve, reject) => {
+        let tentativas = 0;
+        const maxTentativas = 10;
+        
+        function verificarFirebase() {
+            tentativas++;
+            
+            if (typeof firebase !== 'undefined' && 
+                firebase.apps && 
+                firebase.apps.length > 0) {
+                
+                // Firebase carregado e inicializado
+                try {
+                    // Configurar variáveis globais para compatibilidade
+                    window.database = firebase.database();
+                    window.auth = firebase.auth();
+                    
+                    console.log('✅ Firebase configurado globalmente');
+                    console.log('📡 Database:', !!window.database);
+                    console.log('🔐 Auth:', !!window.auth);
+                    
+                    resolve(true);
+                } catch (error) {
+                    console.error('❌ Erro ao configurar Firebase globalmente:', error);
+                    reject(error);
+                }
+            } else if (tentativas < maxTentativas) {
+                // Tentar novamente em 100ms
+                setTimeout(verificarFirebase, 100);
+            } else {
+                // Excesso de tentativas
+                reject(new Error('Firebase não carregou após múltiplas tentativas'));
+            }
+        }
+        
+        verificarFirebase();
+    });
+}
+
+/**
+ * Inicialização segura com retry
+ */
+function inicializarFirebaseSafe() {
+    aguardarFirebaseEConfigurar()
+        .then(() => {
+            console.log('🎉 Firebase totalmente pronto!');
+            
+            // Configurar monitoramento de conexão
+            if (typeof configurarMonitoramentoConexao === 'function') {
+                configurarMonitoramentoConexao();
+            }
+            
+            // Disparar evento personalizado para avisar que Firebase está pronto
+            window.dispatchEvent(new CustomEvent('firebaseReady'));
+        })
+        .catch(error => {
+            console.error('💥 Falha crítica na inicialização do Firebase:', error);
+            
+            // Mostrar erro para o usuário
+            if (typeof mostrarNotificacao === 'function') {
+                mostrarNotificacao('Erro ao conectar com o servidor!', 'error');
+            } else {
+                alert('Erro ao conectar com o servidor! Verifique sua conexão.');
+            }
+        });
+}
+
+// ========== SUBSTITUIR INICIALIZAÇÃO AUTOMÁTICA ==========
+
+// Remover a inicialização automática anterior e usar a nova
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarFirebaseSafe);
+} else {
+    // DOM já carregado
+    setTimeout(inicializarFirebaseSafe, 100); // Pequeno delay para garantir que scripts carregaram
+}
+
+console.log('🔧 Firebase configurado com inicialização segura');
+
+// ========== FUNÇÃO DE DIAGNÓSTICO ==========
+
+/**
+ * Função para diagnosticar problemas do Firebase
+ */
+function diagnosticarFirebase() {
+    console.group('🔥 DIAGNÓSTICO FIREBASE');
+    
+    // Verificar se scripts CDN carregaram
+    console.log('Firebase Global:', typeof firebase !== 'undefined' ? '✅' : '❌');
+    
+    if (typeof firebase !== 'undefined') {
+        console.log('Firebase Apps:', firebase.apps?.length || 0);
+        console.log('SDK Version:', firebase.SDK_VERSION || 'Não detectada');
+    }
+    
+    // Verificar variáveis globais
+    console.log('window.database:', !!window.database ? '✅' : '❌');
+    console.log('window.auth:', !!window.auth ? '✅' : '❌');
+    
+    // Verificar configuração
+    console.log('Config válida:', !!firebaseConfig.apiKey ? '✅' : '❌');
+    
+    // Status de conexão
+    if (window.database) {
+        window.database.ref('.info/connected').once('value')
+            .then(snapshot => {
+                console.log('Conexão ativa:', snapshot.val() ? '✅' : '❌');
+            })
+            .catch(error => {
+                console.log('Erro de conexão:', error.message);
+            });
+    }
+    
+    console.groupEnd();
+}
+
+// Exportar função de diagnóstico
+window.diagnosticarFirebase = diagnosticarFirebase;
+
+// Executar diagnóstico após 2 segundos (para debug)
+if (window.DEBUG && window.DEBUG.ENABLED) {
+    setTimeout(diagnosticarFirebase, 2000);
+}
 console.log('🔥 Firebase configurado para inicialização automática');
  
