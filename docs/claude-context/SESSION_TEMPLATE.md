@@ -1,263 +1,139 @@
-# SISTEMA COMPLETO - Continuidade Claude
-## 🏗️ Sistema de Gestão de Obra v5.1 - Museu Nacional
+# SESSION_TEMPLATE - Sistema Gestão de Obra v5.1
 
----
+## 🏗️ CONTEXTO DO PROJETO
 
-# 📋 SESSION_TEMPLATE.md
-
-## 🎯 CONTEXTO COMPLETO DO PROJETO
-
-**Sistema**: Gestão de Obra - Calendário e Tarefas de Equipe  
-**Projeto Atual**: Obra 292 - Museu Nacional  
+**Sistema**: Gestão de Obra - Calendário e Tarefas  
 **Repositório**: `C:\Projetos\13-sistema-gestao-obra-292`  
 **URL Produção**: `renatomiro.github.io/sistema-gestao-obra/`  
-**Tech Stack**: Firebase Realtime Database + Vanilla JS + CSS Grid  
-**Status**: 95% funcional - apenas CRUD de eventos com problema  
+**Tech Stack**: Firebase + Vanilla JS + CSS Grid  
+**Status**: 90% funcional, corrigindo bugs JavaScript  
 
-## 🔥 FIREBASE - CONFIGURAÇÃO ATUAL
+## 📁 ESTRUTURA PRINCIPAL
 
-**Projeto Firebase**: `sistema-gestao-obra`  
-**Auth Domain**: `sistema-gestao-obra.firebaseapp.com`  
-**Database**: Firebase Realtime Database (não Firestore)  
-**Status**: ✅ Conectado e funcionando 100%  
-
-### Estrutura Database:
 ```
-sistema-gestao-obra/
-├── eventos/
-│   ├── {eventoId}/
-│   │   ├── titulo: "string"
-│   │   ├── descricao: "string" 
-│   │   ├── data: "YYYY-MM-DD"
-│   │   ├── horarioInicio: "HH:mm"
-│   │   ├── horarioFim: "HH:mm"
-│   │   ├── local: "string"
-│   │   ├── tipo: "reuniao|prazo|marco|outros"
-│   │   ├── tarefasRelacionadas: []
-│   │   └── diaCompleto: boolean
-├── usuarios/
-├── tarefas/
-└── configuracoes/
+assets/js/
+├── app.js                    # 🎯 PRINCIPAL - Entry point
+├── config/
+│   ├── firebase.js          # 🔥 Configuração Firebase
+│   └── constants.js         # Constantes do sistema
+├── core/
+│   ├── auth.js             # Autenticação
+│   ├── init.js             # Inicialização
+│   ├── state.js            # Gerenciamento de estado
+│   └── sync.js             # Sincronização
+├── modules/
+│   ├── calendario.js       # 📅 PROBLEMA ATUAL - Erros JS
+│   ├── atividades.js       # Gestão atividades
+│   ├── tarefas.js          # Gestão tarefas
+│   ├── agenda.js           # Agenda pessoal
+│   ├── dashboard.js        # Dashboard principal
+│   └── relatorios.js       # Relatórios
+└── utils/
+    ├── dom.js              # Manipulação DOM
+    ├── helpers.js          # Funções auxiliares
+    ├── notifications.js    # Notificações
+    └── validators.js       # Validações
 ```
 
-## 🚨 PROBLEMA ATUAL - FUNÇÕES FALTANTES
+## 🔥 CONFIGURAÇÃO FIREBASE
 
-### Erro Principal:
+### Projeto Ativo:
+- **Projeto**: `sistema-gestao-obra`
+- **Auth Domain**: `sistema-gestao-obra.firebaseapp.com`
+- **Status**: ✅ Conectado e funcionando
+
+### Collections Principais:
+- `obras/` - Dados das obras (Obra 292 - Museu Nacional)
+- `tarefas/` - Tarefas do projeto
+- `atividades/` - Atividades do calendário  
+- `usuarios/` - Usuários do sistema
+- `eventos/` - Eventos do calendário
+
+## 🚨 PROBLEMAS ATUAIS
+
+### Erros JavaScript Console:
 ```javascript
-❌ ReferenceError: atualizarCamposEvento is not defined
-   at editarEvento (calendario.js:403:5)
-   at eventoDiv.onclick (calendario.js:172:9)
+❌ ERRO PRINCIPAL:
+ReferenceError: atualizarCamposEvento is not defined
+at editarEvento (calendario.js:403:5)
+at eventoDiv.onclick (calendario.js:172:9)
 
-❌ ReferenceError: mostrarNovoEvento is not defined  
-   at HTMLButtonElement.onclick (index.html:linha 192)
+❌ ERRO SECUNDÁRIO:
+ReferenceError: mostrarNovoEvento is not defined  
+at HTMLButtonElement.onclick (sistema-gestao-obra/:164:94)
+
+⚠️ AVISO (não crítico):
+Usuário não logado para salvar dados (sync.js:219)
 ```
 
-### Código Problemático:
-
-**calendario.js linha 172:**
-```javascript
-eventoDiv.onclick = function(e) {
-    e.stopPropagation();
-    editarEvento(evento); // ← Esta função existe
-};
-```
-
-**calendario.js linha 403:**
-```javascript
-// Atualizar interface
-atualizarCamposEvento(); // ← FUNÇÃO FALTANTE ❌
-toggleHorarios();
-toggleRecorrencia();
-atualizarListaPessoas();
-atualizarListaTarefasVinculadas();
-```
-
-**index.html botão "Novo Evento":**
-```html
-<button class="btn btn-primary btn-sm" onclick="mostrarNovoEvento()">✨ Novo Evento</button>
-```
-
-## ✅ STATUS ATUAL DAS FUNCIONALIDADES
-
-### FUNCIONANDO 100%:
-- ✅ Carregamento de todos os módulos (15 módulos carregados)
-- ✅ Firebase conectado e sincronizando
-- ✅ Interface do calendário renderiza perfeitamente
-- ✅ Exibição de eventos existentes
+### Status das Funcionalidades:
+✅ **Funcionando Perfeitamente**:
+- ✅ Carregamento de todos os módulos
+- ✅ Firebase conectado e configurado
 - ✅ Sistema de estado e validação
+- ✅ Interface carrega corretamente
+- ✅ Calendário exibe eventos existentes
 - ✅ Dashboard e navegação
-- ✅ Sistema de autenticação (estrutura pronta)
-- ✅ Filtros e busca de eventos
-- ✅ Indicadores visuais (reunião, prazo, marco)
 
-### COM PROBLEMAS:
-- ❌ **Criar novos eventos** (botão chama função inexistente)
-- ❌ **Editar eventos existentes** (função faltante linha 403)
-- ⚠️ Sistema de login (usuário não logado - não crítico)
+❌ **Com Problemas**:
+- ❌ Editar eventos existentes (função `atualizarCamposEvento` faltando)
+- ❌ Criar novos eventos (função `mostrarNovoEvento` faltando)
+- ⚠️ Sistema de login/autenticação (usuário não logado)
 
-## 📁 ARQUIVOS PARA UPLOAD (sempre estes 4)
+## 📋 ARQUIVOS PARA UPLOAD
 
-1. **`assets/js/modules/calendario.js`** - Onde estão os erros (linhas 172, 403)
-2. **`assets/js/app.js`** - Entry point e controle de erros  
-3. **`index.html`** - HTML com botão problemático
-4. **`assets/js/config/firebase.js`** - Config Firebase completa
+### Sempre Necessários:
+1. `assets/js/app.js` - Entry point principal
+2. `assets/js/modules/calendario.js` - Onde estão os erros
+3. `assets/js/config/firebase.js` - Configuração Firebase
+4. `index.html` - HTML principal
 
-## 🔧 FUNÇÕES QUE PRECISAM SER CRIADAS
+### Conforme Necessário:
+- `assets/js/modules/atividades.js` - Se trabalhando com atividades
+- `assets/js/modules/tarefas.js` - Se trabalhando com tarefas
+- `assets/js/core/state.js` - Se problemas de estado
+- `assets/css/calendar.css` - Se problemas visuais
 
-### 1. `atualizarCamposEvento()` 
-**Localização**: calendario.js após linha 403  
-**Função**: Atualizar formulário de evento com dados do evento selecionado  
-**Deve fazer**:
-- Preencher campos do modal/formulário
-- Configurar modo edição vs criação
-- Carregar dados do evento atual
+## 🎯 ESTADO ATUAL (ATUALIZAR SEMPRE)
 
-### 2. `mostrarNovoEvento()`
-**Localização**: calendario.js (função global)  
-**Função**: Abrir modal/formulário para criar novo evento  
-**Deve fazer**:
-- Limpar formulário 
-- Configurar modo criação
-- Exibir modal de evento
-- Definir data atual como padrão
+**Última Sessão**: 29/06/2025  
+**Trabalhando em**: Corrigir funções faltantes no calendario.js  
+**Problema Principal**: `atualizarCamposEvento` e `mostrarNovoEvento` não definidas  
+**Próximo Objetivo**: Implementar as 2 funções faltantes no calendario.js  
+**Arquivos para Verificar**: 
+- `assets/js/modules/calendario.js` (linha 403 e 172)
+- `index.html` (linha 164 - botão novo evento)
+**Status Sistema**: 95% funcional, apenas CRUD de eventos com problema  
 
-## 🎯 OBJETIVO ATUAL
+## 🔍 DEBUGGING RÁPIDO
 
-**Implementar as 2 funções faltantes para completar o CRUD de eventos:**
-1. ✅ READ - funcionando (eventos são exibidos)
-2. ❌ CREATE - `mostrarNovoEvento()` faltando  
-3. ❌ UPDATE - `atualizarCamposEvento()` faltando
-4. ✅ DELETE - funcionando (botão delete existe)
-
-## 🚀 PRÓXIMOS PASSOS
-
-1. **Imediato**: Criar `mostrarNovoEvento()` e `atualizarCamposEvento()`
-2. **Secundário**: Implementar salvamento no Firebase
-3. **Futuro**: Sistema de autenticação de usuários
-
----
-
-# 📊 CURRENT_STATUS.md
-
-## Estado Atual - 29/06/2025
-
-**Sessão Ativa**: Corrigindo CRUD de eventos no calendário  
-**Progresso**: 95% do sistema funcional  
-**Bloqueio**: 2 funções JavaScript faltantes  
-**Prioridade**: Alta - funcionalidade principal do sistema  
-
-### Última Modificação:
-- Identificados erros específicos no console
-- Localizada origem dos problemas (linhas exatas)
-- Sistema Firebase 100% operacional
-
-### Próxima Ação:
-- Implementar `mostrarNovoEvento()` 
-- Implementar `atualizarCamposEvento()`
-- Testar CRUD completo
-
----
-
-# 🐛 ACTIVE_ISSUES.md
-
-## Issues Ativos
-
-### #001 - CRÍTICO: Função atualizarCamposEvento não definida
-**Arquivo**: `calendario.js:403`  
-**Erro**: `ReferenceError: atualizarCamposEvento is not defined`  
-**Impacto**: Edição de eventos não funciona  
-**Status**: Identificado, aguardando implementação  
-
-### #002 - CRÍTICO: Função mostrarNovoEvento não definida  
-**Arquivo**: `index.html` botão "Novo Evento"  
-**Erro**: `ReferenceError: mostrarNovoEvento is not defined`  
-**Impacto**: Criação de eventos não funciona  
-**Status**: Identificado, aguardando implementação  
-
-### #003 - MENOR: Usuário não logado
-**Arquivo**: `sync.js:219`  
-**Erro**: `⚠️ Usuário não logado para salvar dados`  
-**Impacto**: Dados não persistem no Firebase  
-**Status**: Identificado, não crítico  
-
----
-
-# 💻 CODE_SNIPPETS.md
-
-## Códigos Importantes
-
-### Estrutura Evento Firebase:
+### Verificar Funções Faltantes:
 ```javascript
-const eventoTemplate = {
-    id: "evento_" + Date.now(),
-    titulo: "",
-    descricao: "",
-    data: "2025-06-29", 
-    horarioInicio: "09:00",
-    horarioFim: "10:00",
-    local: "",
-    tipo: "reuniao", // reuniao|prazo|marco|outros
-    tarefasRelacionadas: [],
-    diaCompleto: false,
-    criador: "usuario_id",
-    timestamp: Date.now()
-};
+// Console do navegador - verificar se funções existem
+console.log('atualizarCamposEvento:', typeof atualizarCamposEvento);
+console.log('mostrarNovoEvento:', typeof mostrarNovoEvento);
+console.log('Funções calendario:', Object.getOwnPropertyNames(window).filter(name => name.includes('evento')));
 ```
 
-### Função editarEvento (existente - linha 403):
+### Testar Firebase:
 ```javascript
-function editarEvento(evento) {
-    // ... código existente ...
-    
-    // Linha 403 - PROBLEMA AQUI:
-    atualizarCamposEvento(); // ← FUNÇÃO FALTANTE
-    toggleHorarios();
-    toggleRecorrencia(); 
-    atualizarListaPessoas();
-    atualizarListaTarefasVinculadas();
-}
+// Verificar conexão Firebase
+console.log('Firebase apps:', firebase.apps.length);
+console.log('Estado atual:', window.sistemaState || 'Estado não encontrado');
 ```
 
-### Event Listener (existente - linha 172):
-```javascript
-eventoDiv.onclick = function(e) {
-    e.stopPropagation();
-    editarEvento(evento); // Chama editarEvento que falha na linha 403
-};
-```
+### Localizar Problemas:
+- **Arquivo**: `calendario.js` linha 403 (função `editarEvento` chama `atualizarCamposEvento`)
+- **Arquivo**: `calendario.js` linha 172 (onclick chama `editarEvento`)  
+- **Arquivo**: `index.html` linha 164 (botão chama `mostrarNovoEvento`)
 
-### Debug Commands:
-```javascript
-// Verificar funções disponíveis
-console.log('Funções evento:', Object.getOwnPropertyNames(window).filter(name => name.includes('evento')));
+## 📝 CHECKLIST NOVA CONVERSA
 
-// Testar Firebase
-console.log('Firebase conectado:', !!database);
-console.log('Estado sistema:', window.sistemaState);
-```
-
----
-
-# 🔍 CHECKLIST NOVA CONVERSA
-
-## Preparação (2 minutos):
-- [ ] Abrir nova conversa Claude
-- [ ] Upload do arquivo SESSION_TEMPLATE.md (este arquivo)
+- [ ] Cole este template completo
 - [ ] Upload dos 4 arquivos principais
-- [ ] Especificar problema: "Implementar funções faltantes CRUD eventos"
-
-## Verificação Claude:
-- [ ] Claude confirma contexto completo ✅
-- [ ] Claude identifica problema específico ✅  
-- [ ] Claude propõe solução direta ✅
-
-## Resultado Esperado:
-- [ ] Tempo de contexto: < 30 segundos
-- [ ] Solução pronta: < 5 minutos  
-- [ ] Zero retrabalho de explicação
+- [ ] Confirme erros atuais do console
+- [ ] Defina objetivo específico da sessão
+- [ ] Claude confirma entendimento do contexto
 
 ---
-
-**SISTEMA PRONTO! ✅**
-*Salve este arquivo como `docs/claude-context/SESSION_TEMPLATE.md`*
-*Na próxima conversa: upload apenas este arquivo + os 4 arquivos de código*
+*Sistema: Gestão de Obra v5.1 | Projeto: sistema-gestao-obra-292*
