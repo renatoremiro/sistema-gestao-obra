@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão Completo - Obra 292 (Firebase v5.1)</title>
     
-    <!-- ========== CSS STYLES ========== -->
+    <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/reset.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/components.css">
@@ -15,30 +15,9 @@
     <link rel="stylesheet" href="assets/css/animations.css">
 </head>
 <body>
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="login-container">
-        <h2>🏗️ Sistema de Gestão</h2>
-        <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
-        
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="loginEmail" placeholder="seu@email.com">
-        </div>
-        
-        <div class="form-group">
-            <label>Senha</label>
-            <input type="password" id="loginPassword" placeholder="••••••••">
-        </div>
-        
-        <button class="btn btn-primary" style="width: 100%;" onclick="fazerLogin()">
-            Entrar
-        </button>
-        
-        <div style="margin-top: 16px; text-align: center;">
-            <a href="#" onclick="mostrarRegistro()" style="color: #3b82f6; text-decoration: none;">
-                Não tem conta? Registre-se
-            </a>
-        </div>
+    <!-- Sistema de Notificações -->
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
     </div>
     
     <!-- Indicador de Sincronização -->
@@ -82,9 +61,30 @@
         </div>
     </div>
     
-    <!-- Sistema de Notificações -->
-    <div id="notification" class="notification">
-        <span id="notificationText"></span>
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-container">
+        <h2>🏗️ Sistema de Gestão</h2>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="seu@email.com">
+        </div>
+        
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%;" onclick="fazerLogin()">
+            Entrar
+        </button>
+        
+        <div style="margin-top: 16px; text-align: center;">
+            <a href="#" onclick="mostrarRegistro()" style="color: #3b82f6; text-decoration: none;">
+                Não tem conta? Registre-se
+            </a>
+        </div>
     </div>
     
     <div class="container" id="mainContainer" class="hidden">
@@ -295,7 +295,8 @@
         </div>
     </div>
     
-    <!-- Modal de Novo/Editar Evento (Atualizado) -->
+    <!-- TODOS OS MODAIS AQUI (mantidos iguais ao original) -->
+    <!-- Modal de Novo/Editar Evento -->
     <div id="modalEvento" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <h3 style="margin-bottom: 24px;" id="modalEventoTitulo">Novo Evento</h3>
@@ -583,7 +584,7 @@
         </div>
     </div>
     
-    <!-- Modal de Marcar Status (Ausência/Home Office) -->
+    <!-- Modal de Marcar Status -->
     <div id="modalStatus" class="modal">
         <div class="modal-content">
             <h3 style="margin-bottom: 24px;">Marcar Status do Dia</h3>
@@ -669,57 +670,39 @@
         </div>
     </div>
     
-    <!-- ========== FIREBASE SCRIPTS ========== -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- ✅ FIREBASE SCRIPTS ATUALIZADOS PARA VERSÃO 11.9.1 -->
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
     
-    <!-- ========== SISTEMA MODULAR ORGANIZADO - v5.1 ========== -->
-    
-    <!-- CONFIGURAÇÕES -->
-    <script src="assets/js/config/firebase.js"></script>
+    <!-- ✅ JAVASCRIPT MODULES EM ORDEM CORRETA -->
+    <!-- 1. Configurações primeiro -->
     <script src="assets/js/config/constants.js"></script>
+    <script src="assets/js/config/firebase.js"></script>
     
-    <!-- UTILITÁRIOS (Carregados primeiro - são dependências) -->
-    <script src="assets/js/utils/dom.js"></script>
-    <script src="assets/js/utils/helpers.js"></script>
-    <script src="assets/js/utils/notifications.js"></script>
-    <script src="assets/js/utils/validators.js"></script>
-    
-    <!-- CORE (Funcionalidades centrais) -->
+    <!-- 2. Core modules -->
+    <script src="assets/js/core/state.js"></script>
     <script src="assets/js/core/auth.js"></script>
     <script src="assets/js/core/sync.js"></script>
-    <script src="assets/js/core/state.js"></script>
-    <script src="assets/js/core/init.js"></script>
     
-    <!-- MÓDULOS (Funcionalidades específicas) -->
+    <!-- 3. Utility modules -->
+    <script src="assets/js/utils/helpers.js"></script>
+    <script src="assets/js/utils/validators.js"></script>
+    <script src="assets/js/utils/notifications.js"></script>
+    <script src="assets/js/utils/dom.js"></script>
+    
+    <!-- 4. Feature modules -->
     <script src="assets/js/modules/dashboard.js"></script>
     <script src="assets/js/modules/calendario.js"></script>
     <script src="assets/js/modules/tarefas.js"></script>
-    <script src="assets/js/modules/agenda.js"></script>
     <script src="assets/js/modules/atividades.js"></script>
+    <script src="assets/js/modules/agenda.js"></script>
     <script src="assets/js/modules/relatorios.js"></script>
     
-    <!-- ORQUESTRAÇÃO PRINCIPAL (Carregado por último) -->
-    <script src="assets/js/app.js"></script>
+    <!-- 5. Core initialization -->
+    <script src="assets/js/core/init.js"></script>
     
-    <!-- ========== CONFIGURAÇÃO FIREBASE ========== -->
-    <script>
-        // IMPORTANTE: Substitua com suas credenciais do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCT0UXyU6AeurlaZdgM4_MKhzJWIdYxWg4",
-            authDomain: "sistema-gestao-obra.firebaseapp.com",
-            databaseURL: "https://sistema-gestao-obra-default-rtdb.firebaseio.com",
-            projectId: "sistema-gestao-obra",
-            storageBucket: "sistema-gestao-obra.firebasestorage.app",
-            messagingSenderId: "686804029278",
-            appId: "1:686804029278:web:758190822a19ef935e89cf",
-            measurementId: "G-RE86WX5KY2"
-        };
-        
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        console.log('🔥 Firebase inicializado no HTML');
-    </script>
+    <!-- 6. Main app initialization -->
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
