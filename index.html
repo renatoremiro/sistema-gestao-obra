@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de GestÃ£o Completo - Obra 292 (Firebase v5.1)</title>
+    <title>Sistema de Gestão Completo - Obra 292 (Firebase v5.1)</title>
     
     <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/reset.css">
@@ -15,18 +15,18 @@
     <link rel="stylesheet" href="assets/css/animations.css">
 </head>
 <body>
-    <!-- Sistema de NotificaÃ§Ãµes -->
+    <!-- Sistema de Notificações -->
     <div id="notification" class="notification">
         <span id="notificationText"></span>
     </div>
     
-    <!-- Indicador de SincronizaÃ§Ã£o -->
+    <!-- Indicador de Sincronização -->
     <div id="syncIndicator" class="sync-indicator synced">
         <span class="loading" id="syncLoader" style="display: none;"></span>
-        <span id="syncText">âœ“ Sincronizado</span>
+        <span id="syncText">✓ Sincronizado</span>
     </div>
     
-    <!-- Indicador de UsuÃ¡rios Online -->
+    <!-- Indicador de Usuários Online -->
     <div id="usersOnline" class="users-online hidden">
         <div style="font-size: 13px; color: #6b7280;">Equipe Online</div>
         <div class="users-online-list" id="usersOnlineList"></div>
@@ -34,36 +34,36 @@
     
     <!-- Log de Atividades -->
     <div class="activity-toggle" onclick="toggleActivityLog()">
-        ðŸ“‹ Atividades
+        📋 Atividades
     </div>
     
     <div id="activityLog" class="activity-log">
         <div class="activity-log-header">
             <span>Atividades Recentes</span>
-            <span style="cursor: pointer;" onclick="toggleActivityLog()">âœ•</span>
+            <span style="cursor: pointer;" onclick="toggleActivityLog()">✕</span>
         </div>
         <div class="activity-log-content" id="activityLogContent">
-            <!-- Atividades serÃ£o inseridas aqui -->
+            <!-- Atividades serão inseridas aqui -->
         </div>
     </div>
     
     <!-- Modal de Conflito -->
     <div id="conflictModal" class="conflict-modal">
-        <h3>âš ï¸ Conflito de EdiÃ§Ã£o</h3>
+        <h3>⚠️ Conflito de Edição</h3>
         <p id="conflictMessage"></p>
         <div class="conflict-options">
             <button class="btn btn-primary" onclick="resolverConflito('manter')">
-                Manter Minhas AlteraÃ§Ãµes
+                Manter Minhas Alterações
             </button>
             <button class="btn btn-secondary" onclick="resolverConflito('descartar')">
-                Usar VersÃ£o do Servidor
+                Usar Versão do Servidor
             </button>
         </div>
     </div>
     
     <!-- Tela de Login -->
     <div id="loginScreen" class="login-container">
-        <h2>ðŸ—ï¸ Sistema de GestÃ£o</h2>
+        <h2>🏗️ Sistema de Gestão</h2>
         <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
         
         <div class="form-group">
@@ -73,7 +73,7 @@
         
         <div class="form-group">
             <label>Senha</label>
-            <input type="password" id="loginPassword" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+            <input type="password" id="loginPassword" placeholder="••••••••">
         </div>
         
         <button class="btn btn-primary" style="width: 100%;" onclick="fazerLogin()">
@@ -82,23 +82,23 @@
         
         <div style="margin-top: 16px; text-align: center;">
             <a href="#" onclick="mostrarRegistro()" style="color: #3b82f6; text-decoration: none;">
-                NÃ£o tem conta? Registre-se
+                Não tem conta? Registre-se
             </a>
         </div>
     </div>
     
     <div class="container" id="mainContainer" class="hidden">
-        <!-- Breadcrumb de NavegaÃ§Ã£o -->
+        <!-- Breadcrumb de Navegação -->
         <div id="breadcrumb" class="breadcrumb hidden">
             <span id="breadcrumbPath"></span>
         </div>
         
         <div class="header">
             <div>
-                <h1>Sistema de GestÃ£o Colaborativo</h1>
+                <h1>Sistema de Gestão Colaborativo</h1>
                 <p>Obra 292 - Museu Nacional</p>
                 <p style="font-size: 14px; color: #6b7280;">
-                    Sistema v5.1 Firebase - Melhorias AvanÃ§adas ðŸš€
+                    Sistema v5.1 Firebase - Melhorias Avançadas 🚀
                     <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
                 </p>
             </div>
@@ -109,16 +109,16 @@
                 </p>
                 <div style="margin-top: 8px;">
                     <button class="btn btn-success btn-sm" onclick="exportarDados()">
-                        ðŸ“¥ Exportar
+                        📥 Exportar
                     </button>
                     <button class="btn btn-primary btn-sm" onclick="mostrarImportar()">
-                        ðŸ“¤ Importar
+                        📤 Importar
                     </button>
                     <button class="btn btn-warning btn-sm" onclick="mostrarMarcarFeriado()">
-                        ðŸŽ‰ Feriados
+                        🎉 Feriados
                     </button>
                     <button class="btn btn-danger btn-sm" onclick="fazerLogout()">
-                        ðŸšª Sair
+                        🚪 Sair
                     </button>
                 </div>
             </div>
@@ -126,7 +126,7 @@
         
         <!-- Dashboard Executivo -->
         <div id="dashboardExecutivo">
-            <!-- EstatÃ­sticas RÃ¡pidas -->
+            <!-- Estatísticas Rápidas -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="resumo-numero" style="color: #10b981;" id="statEmDia">0</div>
@@ -137,7 +137,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="resumo-numero" style="color: #f59e0b;" id="statAtencao">0</div>
-                    <div>AtenÃ§Ã£o</div>
+                    <div>Atenção</div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressAtencao" style="background: #f59e0b;"></div>
                     </div>
@@ -151,43 +151,43 @@
                 </div>
                 <div class="stat-card">
                     <div class="resumo-numero" style="color: #8b5cf6;" id="statEventos">0</div>
-                    <div>Eventos no MÃªs</div>
+                    <div>Eventos no Mês</div>
                 </div>
             </div>
             
-            <!-- CalendÃ¡rio -->
+            <!-- Calendário -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3>ðŸ“… CalendÃ¡rio da Equipe</h3>
+                    <h3>📅 Calendário da Equipe</h3>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(-1)">â—€ Anterior</button>
+                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(-1)">◀ Anterior</button>
                         <button class="btn btn-primary btn-sm" onclick="mostrarNovoEvento()">+ Novo Evento</button>
-                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(1)">PrÃ³ximo â–¶</button>
+                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(1)">Próximo ▶</button>
                     </div>
                 </div>
                 
                 <div id="calendario" class="calendario"></div>
                 
                 <div style="margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px;">
-                    <span><span class="status-indicator evento-reuniao"></span>ReuniÃ£o</span>
+                    <span><span class="status-indicator evento-reuniao"></span>Reunião</span>
                     <span><span class="status-indicator evento-entrega"></span>Entrega</span>
                     <span><span class="status-indicator evento-prazo"></span>Prazo</span>
                     <span><span class="status-indicator evento-marco"></span>Marco</span>
                     <span><span class="status-indicator evento-outro"></span>Outros</span>
                     <span><span class="status-indicator" style="background: #f59e0b;"></span>Feriado</span>
-                    <span>ðŸ”„ Evento Recorrente</span>
+                    <span>🔄 Evento Recorrente</span>
                 </div>
             </div>
             
-            <!-- Timeline de PrÃ³ximos Eventos -->
+            <!-- Timeline de Próximos Eventos -->
             <div class="timeline-container">
-                <h3 style="margin-bottom: 20px;">ðŸ“ PrÃ³ximos Eventos Importantes</h3>
+                <h3 style="margin-bottom: 20px;">📍 Próximos Eventos Importantes</h3>
                 <div id="timelineEventos"></div>
             </div>
             
             <!-- Busca e Filtros -->
             <div class="card">
-                <h3 style="margin-bottom: 16px;">ðŸ” Busca e Filtros</h3>
+                <h3 style="margin-bottom: 16px;">🔍 Busca e Filtros</h3>
                 <div class="search-box">
                     <input type="text" placeholder="Buscar atividades, pessoas, eventos..." id="searchInput" onkeyup="buscarGlobalDebounced()">
                     <button class="btn btn-primary" onclick="buscarGlobal()">Buscar</button>
@@ -195,33 +195,33 @@
                 <div class="filter-pills">
                     <div class="filter-pill active" onclick="filtrarStatus('todos', this)">Todos</div>
                     <div class="filter-pill" onclick="filtrarStatus('verde', this)">Em Dia</div>
-                    <div class="filter-pill" onclick="filtrarStatus('amarelo', this)">AtenÃ§Ã£o</div>
+                    <div class="filter-pill" onclick="filtrarStatus('amarelo', this)">Atenção</div>
                     <div class="filter-pill" onclick="filtrarStatus('vermelho', this)">Atraso</div>
                 </div>
             </div>
             
             <!-- Dica do sistema -->
             <div style="background: #dbeafe; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #1e40af;">
-                <strong>ðŸ”¥ Sistema v5.1 - Novas Funcionalidades:</strong> 
-                <br><strong>âœ… EdiÃ§Ã£o Completa de Tarefas:</strong> Agora vocÃª pode editar descriÃ§Ã£o, prioridade e dependÃªncias
-                <br><strong>âš ï¸ ValidaÃ§Ã£o de Prazos:</strong> Sistema bloqueia criaÃ§Ã£o de atividades com prazo no passado
-                <br><strong>ðŸ“Š Progresso AutomÃ¡tico:</strong> Calculado automaticamente baseado nas tarefas concluÃ­das
-                <br><strong>ðŸ”” Alertas Inteligentes:</strong> NotificaÃ§Ãµes automÃ¡ticas para prazos vencendo
-                <br><strong>â° Monitoramento 24/7:</strong> Sistema verifica automaticamente status das atividades
-                <br><strong>ðŸ“± Ainda mais responsivo:</strong> Funciona perfeitamente em qualquer dispositivo!
+                <strong>🔥 Sistema v5.1 - Novas Funcionalidades:</strong> 
+                <br><strong>✅ Edição Completa de Tarefas:</strong> Agora você pode editar descrição, prioridade e dependências
+                <br><strong>⚠️ Validação de Prazos:</strong> Sistema bloqueia criação de atividades com prazo no passado
+                <br><strong>📊 Progresso Automático:</strong> Calculado automaticamente baseado nas tarefas concluídas
+                <br><strong>🔔 Alertas Inteligentes:</strong> Notificações automáticas para prazos vencendo
+                <br><strong>⏰ Monitoramento 24/7:</strong> Sistema verifica automaticamente status das atividades
+                <br><strong>📱 Ainda mais responsivo:</strong> Funciona perfeitamente em qualquer dispositivo!
             </div>
             
-            <!-- Cards das Ãreas -->
+            <!-- Cards das Áreas -->
             <div class="grid" id="areasGrid"></div>
         </div>
         
-        <!-- Painel de Ãrea -->
+        <!-- Painel de Área -->
         <div id="painelArea" class="hidden">
-            <span class="back-btn" onclick="voltarDashboard()">â† Voltar ao Dashboard</span>
+            <span class="back-btn" onclick="voltarDashboard()">← Voltar ao Dashboard</span>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h2 id="areaNome">Nome da Ãrea</h2>
+                        <h2 id="areaNome">Nome da Área</h2>
                         <p id="areaCoordenador" style="color: #6b7280;">Coordenador</p>
                     </div>
                     <button class="btn btn-primary" onclick="mostrarNovaAtividade()">+ Nova Atividade</button>
@@ -230,12 +230,12 @@
             
             <div class="grid">
                 <div class="card">
-                    <h3>ðŸ‘¥ Equipe</h3>
+                    <h3>👥 Equipe</h3>
                     <div id="equipeLista"></div>
                 </div>
                 
                 <div class="card">
-                    <h3>ðŸ“‹ Atividades em Andamento</h3>
+                    <h3>📋 Atividades em Andamento</h3>
                     <div id="atividadesLista"></div>
                 </div>
             </div>
@@ -243,7 +243,7 @@
         
         <!-- Agenda Individual -->
         <div id="agendaIndividual" class="hidden">
-            <span class="back-btn" onclick="voltarParaArea()">â† Voltar para Ãrea</span>
+            <span class="back-btn" onclick="voltarParaArea()">← Voltar para Área</span>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -252,7 +252,7 @@
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-primary" onclick="mostrarNovaTarefa()">+ Nova Tarefa</button>
-                        <button class="btn btn-warning btn-sm" onclick="mostrarMarcarStatus()">ðŸ“ Status DiÃ¡rio</button>
+                        <button class="btn btn-warning btn-sm" onclick="mostrarMarcarStatus()">📍 Status Diário</button>
                     </div>
                 </div>
             </div>
@@ -260,7 +260,7 @@
             <div class="grid">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3>ðŸ“Š Minhas Responsabilidades</h3>
+                        <h3>📊 Minhas Responsabilidades</h3>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span id="contadorResponsabilidades" style="background: #e5e7eb; padding: 4px 12px; border-radius: 20px; font-size: 14px;">0</span>
                             <button class="btn btn-success btn-sm" onclick="mostrarAdicionarResponsabilidade()" title="Buscar novas responsabilidades">
@@ -271,26 +271,26 @@
                     <div style="margin-bottom: 12px;">
                         <select id="filtroResponsabilidades" onchange="renderizarResponsabilidades(estadoSistema.pessoaAtual)" 
                                 style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;">
-                            <option value="todas">ðŸ” Todas as responsabilidades</option>
-                            <option value="urgentes">âš¡ Urgentes (â‰¤ 3 dias)</option>
-                            <option value="emdia">âœ… Em dia</option>
-                            <option value="atencao">âš ï¸ AtenÃ§Ã£o</option>
-                            <option value="atrasadas">âŒ Atrasadas</option>
+                            <option value="todas">🔍 Todas as responsabilidades</option>
+                            <option value="urgentes">⚡ Urgentes (≤ 3 dias)</option>
+                            <option value="emdia">✅ Em dia</option>
+                            <option value="atencao">⚠️ Atenção</option>
+                            <option value="atrasadas">❌ Atrasadas</option>
                         </select>
                     </div>
                     <div id="responsabilidadesLista"></div>
                 </div>
                 
                 <div class="card">
-                    <h3>ðŸ“… Agenda da Semana</h3>
+                    <h3>📅 Agenda da Semana</h3>
                     <div class="agenda-semana" id="agendaSemana"></div>
                 </div>
             </div>
             
             <div class="card">
-                <h3>ðŸ“ ObservaÃ§Ãµes Pessoais</h3>
+                <h3>📝 Observações Pessoais</h3>
                 <textarea id="observacoesPessoais" rows="3" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;" 
-                    placeholder="Adicione suas observaÃ§Ãµes..." onblur="salvarObservacoes()"></textarea>
+                    placeholder="Adicione suas observações..." onblur="salvarObservacoes()"></textarea>
             </div>
         </div>
     </div>
@@ -305,23 +305,23 @@
             <div class="form-group">
                 <label>Tipo de Evento <span style="color: #ef4444;">*</span></label>
                 <select id="eventoTipo" onchange="atualizarCamposEvento()">
-                    <option value="reuniao">ðŸ“… ReuniÃ£o</option>
-                    <option value="entrega">ðŸ“¦ Entrega</option>
-                    <option value="prazo">â° Prazo</option>
-                    <option value="marco">ðŸŽ¯ Marco do Projeto</option>
-                    <option value="outro">ðŸ“Œ Outro (visita, auditoria, etc)</option>
+                    <option value="reuniao">📅 Reunião</option>
+                    <option value="entrega">📦 Entrega</option>
+                    <option value="prazo">⏰ Prazo</option>
+                    <option value="marco">🎯 Marco do Projeto</option>
+                    <option value="outro">📌 Outro (visita, auditoria, etc)</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label>TÃ­tulo <span style="color: #ef4444;">*</span></label>
-                <input type="text" id="eventoTitulo" placeholder="Digite o tÃ­tulo do evento" required>
-                <span class="error-message hidden" id="eventoTituloError">TÃ­tulo Ã© obrigatÃ³rio</span>
+                <label>Título <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="eventoTitulo" placeholder="Digite o título do evento" required>
+                <span class="error-message hidden" id="eventoTituloError">Título é obrigatório</span>
             </div>
             
             <div class="form-group">
-                <label>DescriÃ§Ã£o</label>
-                <textarea id="eventoDescricao" rows="3" placeholder="Adicione uma descriÃ§Ã£o detalhada..."></textarea>
+                <label>Descrição</label>
+                <textarea id="eventoDescricao" rows="3" placeholder="Adicione uma descrição detalhada..."></textarea>
             </div>
             
             <div class="form-group">
@@ -334,30 +334,30 @@
             <div class="form-group">
                 <label>Data <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="eventoData" required>
-                <span class="error-message hidden" id="eventoDataError">Data Ã© obrigatÃ³ria</span>
+                <span class="error-message hidden" id="eventoDataError">Data é obrigatória</span>
             </div>
             
             <div class="form-group" id="grupoDataFim" style="display: none;">
-                <label>Data de TÃ©rmino</label>
+                <label>Data de Término</label>
                 <input type="date" id="eventoDataFim">
-                <small style="color: #6b7280;">Para eventos de mÃºltiplos dias</small>
+                <small style="color: #6b7280;">Para eventos de múltiplos dias</small>
             </div>
             
             <div class="horario-group" id="grupoHorarios">
                 <div class="form-group">
-                    <label>HorÃ¡rio InÃ­cio <span style="color: #ef4444;">*</span></label>
+                    <label>Horário Início <span style="color: #ef4444;">*</span></label>
                     <input type="time" id="eventoHorarioInicio" value="09:00" required>
-                    <span class="error-message hidden" id="eventoHorarioInicioError">HorÃ¡rio Ã© obrigatÃ³rio</span>
+                    <span class="error-message hidden" id="eventoHorarioInicioError">Horário é obrigatório</span>
                 </div>
                 <div class="form-group">
-                    <label>HorÃ¡rio Fim</label>
+                    <label>Horário Fim</label>
                     <input type="time" id="eventoHorarioFim" value="10:00">
                 </div>
             </div>
             
             <div class="form-group" id="grupoLocal">
                 <label>Local</label>
-                <input type="text" id="eventoLocal" placeholder="Ex: Sala de reuniÃ£o, Canteiro de obras...">
+                <input type="text" id="eventoLocal" placeholder="Ex: Sala de reunião, Canteiro de obras...">
             </div>
             
             <div class="form-group">
@@ -377,9 +377,9 @@
             
             <div class="recorrencia-config hidden" id="recorrenciaConfig">
                 <div class="form-group">
-                    <label>Tipo de RecorrÃªncia</label>
+                    <label>Tipo de Recorrência</label>
                     <select id="recorrenciaTipo" onchange="atualizarConfigRecorrencia()">
-                        <option value="diaria">DiÃ¡ria</option>
+                        <option value="diaria">Diária</option>
                         <option value="semanal">Semanal</option>
                         <option value="quinzenal">Quinzenal</option>
                         <option value="mensal">Mensal</option>
@@ -393,16 +393,16 @@
                     <div class="checkbox-group" style="flex-direction: column; gap: 8px;">
                         <label><input type="checkbox" value="0"> Domingo</label>
                         <label><input type="checkbox" value="1"> Segunda</label>
-                        <label><input type="checkbox" value="2"> TerÃ§a</label>
+                        <label><input type="checkbox" value="2"> Terça</label>
                         <label><input type="checkbox" value="3"> Quarta</label>
                         <label><input type="checkbox" value="4"> Quinta</label>
                         <label><input type="checkbox" value="5"> Sexta</label>
-                        <label><input type="checkbox" value="6"> SÃ¡bado</label>
+                        <label><input type="checkbox" value="6"> Sábado</label>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>AtÃ© quando?</label>
+                    <label>Até quando?</label>
                     <input type="date" id="recorrenciaFim">
                     <small style="color: #6b7280;">Deixe vazio para continuar indefinidamente</small>
                 </div>
@@ -431,33 +431,33 @@
             <div class="form-group">
                 <label>Nome da Atividade <span style="color: #ef4444;">*</span></label>
                 <input type="text" id="atividadeNome" placeholder="Digite o nome da atividade" required>
-                <span class="error-message hidden" id="atividadeNomeError">Nome Ã© obrigatÃ³rio</span>
+                <span class="error-message hidden" id="atividadeNomeError">Nome é obrigatório</span>
             </div>
             <div class="form-group">
                 <label>Prazo <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="atividadePrazo" required onchange="validarPrazoAtividade()">
-                <span class="error-message hidden" id="atividadePrazoError">Prazo Ã© obrigatÃ³rio</span>
-                <span class="error-message hidden" id="atividadePrazoPassadoError">âš ï¸ Prazo nÃ£o pode ser no passado!</span>
+                <span class="error-message hidden" id="atividadePrazoError">Prazo é obrigatório</span>
+                <span class="error-message hidden" id="atividadePrazoPassadoError">⚠️ Prazo não pode ser no passado!</span>
             </div>
             <div class="form-group">
-                <label>ResponsÃ¡veis <span style="color: #ef4444;">*</span></label>
+                <label>Responsáveis <span style="color: #ef4444;">*</span></label>
                 <select id="atividadeResponsaveis" multiple style="height: 100px;" required></select>
-                <small style="color: #6b7280;">Segure Ctrl para selecionar mÃºltiplos</small>
-                <span class="error-message hidden" id="atividadeResponsaveisError">Selecione ao menos um responsÃ¡vel</span>
+                <small style="color: #6b7280;">Segure Ctrl para selecionar múltiplos</small>
+                <span class="error-message hidden" id="atividadeResponsaveisError">Selecione ao menos um responsável</span>
             </div>
             <div class="form-group">
                 <label>Status</label>
                 <select id="atividadeStatus">
-                    <option value="verde">ðŸŸ¢ Em Dia</option>
-                    <option value="amarelo">ðŸŸ¡ AtenÃ§Ã£o</option>
-                    <option value="vermelho">ðŸ”´ Atraso</option>
+                    <option value="verde">🟢 Em Dia</option>
+                    <option value="amarelo">🟡 Atenção</option>
+                    <option value="vermelho">🔴 Atraso</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Progresso (%) <span class="tooltip" data-tooltip="Calculado automaticamente pelas tarefas">â„¹ï¸</span></label>
+                <label>Progresso (%) <span class="tooltip" data-tooltip="Calculado automaticamente pelas tarefas">ℹ️</span></label>
                 <input type="number" id="atividadeProgresso" min="0" max="100" placeholder="Calculado automaticamente" readonly 
                        style="background: #f9fafb; cursor: not-allowed;">
-                <small style="color: #6b7280;">O progresso Ã© calculado automaticamente baseado nas tarefas concluÃ­das</small>
+                <small style="color: #6b7280;">O progresso é calculado automaticamente baseado nas tarefas concluídas</small>
             </div>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
                 <button class="btn btn-secondary" onclick="fecharModal('modalAtividade')">Cancelar</button>
@@ -474,39 +474,39 @@
                 <label>Tipo de Agendamento</label>
                 <select id="tarefaTipo" onchange="alternarTipoAgendamento()">
                     <option value="semanal">Dia da Semana</option>
-                    <option value="data">Data EspecÃ­fica</option>
+                    <option value="data">Data Específica</option>
                 </select>
             </div>
             <div class="form-group" id="grupoDiaSemana">
                 <label>Dia da Semana</label>
                 <select id="tarefaDia">
                     <option value="segunda">Segunda-feira</option>
-                    <option value="terca">TerÃ§a-feira</option>
+                    <option value="terca">Terça-feira</option>
                     <option value="quarta">Quarta-feira</option>
                     <option value="quinta">Quinta-feira</option>
                     <option value="sexta">Sexta-feira</option>
                 </select>
             </div>
             <div class="form-group hidden" id="grupoData">
-                <label>Data EspecÃ­fica <span style="color: #ef4444;">*</span></label>
+                <label>Data Específica <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="tarefaDataEspecifica">
-                <span class="error-message hidden" id="tarefaDataError">Data Ã© obrigatÃ³ria</span>
+                <span class="error-message hidden" id="tarefaDataError">Data é obrigatória</span>
             </div>
             <div class="form-group">
-                <label>DescriÃ§Ã£o <span style="color: #ef4444;">*</span></label>
-                <input type="text" id="tarefaDescricao" placeholder="Digite a descriÃ§Ã£o da tarefa" required>
-                <span class="error-message hidden" id="tarefaDescricaoError">DescriÃ§Ã£o Ã© obrigatÃ³ria</span>
+                <label>Descrição <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="tarefaDescricao" placeholder="Digite a descrição da tarefa" required>
+                <span class="error-message hidden" id="tarefaDescricaoError">Descrição é obrigatória</span>
             </div>
             <div class="form-group">
-                <label>HorÃ¡rio <span style="color: #ef4444;">*</span></label>
+                <label>Horário <span style="color: #ef4444;">*</span></label>
                 <input type="time" id="tarefaHorario" required>
-                <span class="error-message hidden" id="tarefaHorarioError">HorÃ¡rio Ã© obrigatÃ³rio</span>
+                <span class="error-message hidden" id="tarefaHorarioError">Horário é obrigatório</span>
             </div>
             <div class="form-group">
-                <label>RecorrÃªncia</label>
+                <label>Recorrência</label>
                 <select id="tarefaRecorrencia">
-                    <option value="unica">Ãšnica vez</option>
-                    <option value="diaria">DiÃ¡ria</option>
+                    <option value="unica">Única vez</option>
+                    <option value="diaria">Diária</option>
                     <option value="semanal">Semanal</option>
                     <option value="quinzenal">Quinzenal</option>
                     <option value="mensal">Mensal</option>
@@ -516,7 +516,7 @@
                 <div class="checkbox-group">
                     <label>
                         <input type="checkbox" id="tarefaCalendario">
-                        ðŸ“… Mostrar no calendÃ¡rio da equipe
+                        📅 Mostrar no calendário da equipe
                     </label>
                 </div>
                 <small style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;">
@@ -533,29 +533,29 @@
     <!-- Modal de Editar Tarefa Individual -->
     <div id="modalEditarTarefa" class="modal">
         <div class="modal-content modal-editar-tarefa">
-            <h3 style="margin-bottom: 24px;">âœï¸ Editar Tarefa</h3>
+            <h3 style="margin-bottom: 24px;">✏️ Editar Tarefa</h3>
             <input type="hidden" id="editTarefaAtividadeId">
             <input type="hidden" id="editTarefaId">
             
             <div class="form-group">
-                <label>DescriÃ§Ã£o <span style="color: #ef4444;">*</span></label>
-                <input type="text" id="editTarefaDescricao" placeholder="Digite a descriÃ§Ã£o da tarefa" required>
-                <span class="error-message hidden" id="editTarefaDescricaoError">DescriÃ§Ã£o Ã© obrigatÃ³ria</span>
+                <label>Descrição <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="editTarefaDescricao" placeholder="Digite a descrição da tarefa" required>
+                <span class="error-message hidden" id="editTarefaDescricaoError">Descrição é obrigatória</span>
             </div>
             
             <div class="form-group">
                 <label>Prioridade</label>
                 <select id="editTarefaPrioridade">
-                    <option value="baixa">ðŸŸ¢ Baixa</option>
-                    <option value="media">ðŸŸ¡ MÃ©dia</option>
-                    <option value="alta">ðŸ”´ Alta</option>
+                    <option value="baixa">🟢 Baixa</option>
+                    <option value="media">🟡 Média</option>
+                    <option value="alta">🔴 Alta</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label>ResponsÃ¡vel</label>
+                <label>Responsável</label>
                 <select id="editTarefaResponsavel">
-                    <!-- SerÃ¡ preenchido dinamicamente -->
+                    <!-- Será preenchido dinamicamente -->
                 </select>
             </div>
             
@@ -565,21 +565,21 @@
             </div>
             
             <div class="form-group">
-                <label>DependÃªncias</label>
+                <label>Dependências</label>
                 <div id="editTarefaDependencias" style="max-height: 150px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px;">
-                    <!-- SerÃ¡ preenchido dinamicamente -->
+                    <!-- Será preenchido dinamicamente -->
                 </div>
-                <small style="color: #6b7280;">Selecione tarefas que devem ser concluÃ­das antes desta</small>
+                <small style="color: #6b7280;">Selecione tarefas que devem ser concluídas antes desta</small>
             </div>
             
             <div class="form-group">
-                <label>ObservaÃ§Ãµes</label>
-                <textarea id="editTarefaObservacoes" rows="3" placeholder="Adicione observaÃ§Ãµes sobre a tarefa..."></textarea>
+                <label>Observações</label>
+                <textarea id="editTarefaObservacoes" rows="3" placeholder="Adicione observações sobre a tarefa..."></textarea>
             </div>
             
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
                 <button class="btn btn-secondary" onclick="fecharModal('modalEditarTarefa')">Cancelar</button>
-                <button class="btn btn-primary" onclick="salvarEdicaoTarefa()">Salvar AlteraÃ§Ãµes</button>
+                <button class="btn btn-primary" onclick="salvarEdicaoTarefa()">Salvar Alterações</button>
             </div>
         </div>
     </div>
@@ -591,19 +591,19 @@
             <div class="form-group">
                 <label>Data <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="statusData" required>
-                <span class="error-message hidden" id="statusDataError">Data Ã© obrigatÃ³ria</span>
+                <span class="error-message hidden" id="statusDataError">Data é obrigatória</span>
             </div>
             <div class="form-group">
                 <label>Status</label>
                 <select id="statusTipo">
-                    <option value="presente">âœ… Presente</option>
-                    <option value="ausencia">âŒ AusÃªncia</option>
-                    <option value="home-office">ðŸ  Home Office</option>
+                    <option value="presente">✅ Presente</option>
+                    <option value="ausencia">❌ Ausência</option>
+                    <option value="home-office">🏠 Home Office</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>ObservaÃ§Ã£o (opcional)</label>
-                <input type="text" id="statusObservacao" placeholder="Ex: Consulta mÃ©dica, reuniÃ£o externa...">
+                <label>Observação (opcional)</label>
+                <input type="text" id="statusObservacao" placeholder="Ex: Consulta médica, reunião externa...">
             </div>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
                 <button class="btn btn-secondary" onclick="fecharModal('modalStatus')">Cancelar</button>
@@ -619,12 +619,12 @@
             <div class="form-group">
                 <label>Data <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="feriadoData" required>
-                <span class="error-message hidden" id="feriadoDataError">Data Ã© obrigatÃ³ria</span>
+                <span class="error-message hidden" id="feriadoDataError">Data é obrigatória</span>
             </div>
             <div class="form-group">
                 <label>Nome do Feriado <span style="color: #ef4444;">*</span></label>
-                <input type="text" id="feriadoNome" placeholder="Ex: Dia da IndependÃªncia" required>
-                <span class="error-message hidden" id="feriadoNomeError">Nome Ã© obrigatÃ³rio</span>
+                <input type="text" id="feriadoNome" placeholder="Ex: Dia da Independência" required>
+                <span class="error-message hidden" id="feriadoNomeError">Nome é obrigatório</span>
             </div>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
                 <button class="btn btn-secondary" onclick="fecharModal('modalFeriado')">Cancelar</button>
@@ -653,7 +653,7 @@
         </div>
     </div>
     
-    <!-- Modal de SeleÃ§Ã£o de Tarefas -->
+    <!-- Modal de Seleção de Tarefas -->
     <div id="modalSeletorTarefas" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <h3 style="margin-bottom: 24px;">Vincular Tarefas ao Evento</h3>
@@ -669,11 +669,11 @@
             </div>
         </div>
     </div>
-    <!-- Modal de Registro Moderno - Adicionar ao index.html apÃ³s modal modalFeriado -->
+    <!-- Modal de Registro Moderno - Adicionar ao index.html após modal modalFeriado -->
 <div id="modalRegistro" class="modal">
     <div class="modal-content modal-registro">
         <div class="modal-header">
-            <h3>ðŸš€ Criar Nova Conta</h3>
+            <h3>🚀 Criar Nova Conta</h3>
             <span class="modal-close" onclick="fecharModal('modalRegistro')">&times;</span>
         </div>
         
@@ -681,7 +681,7 @@
             <div class="form-step active" id="step1">
                 <div class="form-group">
                     <label for="registroEmail">
-                        ðŸ“§ Email <span class="required">*</span>
+                        📧 Email <span class="required">*</span>
                     </label>
                     <input type="email" id="registroEmail" 
                            placeholder="seu@email.com" 
@@ -696,16 +696,16 @@
                 
                 <div class="form-group">
                     <label for="registroSenha">
-                        ðŸ”’ Senha <span class="required">*</span>
+                        🔒 Senha <span class="required">*</span>
                     </label>
                     <div class="password-input-container">
                         <input type="password" id="registroSenha" 
-                               placeholder="MÃ­nimo 6 caracteres" 
+                               placeholder="Mínimo 6 caracteres" 
                                autocomplete="new-password"
                                oninput="validarCampoTempo('registroSenha')"
                                required>
                         <button type="button" class="toggle-password" onclick="toggleSenhaVisibilidade('registroSenha')">
-                            ðŸ‘ï¸
+                            👁️
                         </button>
                     </div>
                     <div class="field-validation">
@@ -722,7 +722,7 @@
                 
                 <div class="form-group">
                     <label for="registroConfirmarSenha">
-                        ðŸ”’ Confirmar Senha <span class="required">*</span>
+                        🔒 Confirmar Senha <span class="required">*</span>
                     </label>
                     <input type="password" id="registroConfirmarSenha" 
                            placeholder="Digite a senha novamente" 
@@ -737,14 +737,14 @@
                 
                 <button type="button" class="btn btn-primary btn-next" 
                         onclick="proximaEtapa()" id="btnProximaEtapa">
-                    PrÃ³ximo â†’
+                    Próximo →
                 </button>
             </div>
             
             <div class="form-step" id="step2">
                 <div class="form-group">
                     <label for="registroNome">
-                        ðŸ‘¤ Nome Completo <span class="required">*</span>
+                        👤 Nome Completo <span class="required">*</span>
                     </label>
                     <input type="text" id="registroNome" 
                            placeholder="Seu nome completo" 
@@ -759,21 +759,21 @@
                 
                 <div class="form-group">
                     <label for="registroCargo">
-                        ðŸ’¼ Cargo/FunÃ§Ã£o <span class="required">*</span>
+                        💼 Cargo/Função <span class="required">*</span>
                     </label>
                     <select id="registroCargo" 
                             onchange="validarCampoTempo('registroCargo')"
                             required>
                         <option value="">Selecione seu cargo...</option>
-                        <option value="Coordenador">ðŸŽ¯ Coordenador</option>
-                        <option value="Engenheiro">âš™ï¸ Engenheiro</option>
-                        <option value="Arquiteto">ðŸ—ï¸ Arquiteto</option>
-                        <option value="TÃ©cnico">ðŸ”§ TÃ©cnico</option>
-                        <option value="Administrativo">ðŸ“‹ Administrativo</option>
-                        <option value="EstagiÃ¡rio">ðŸ“š EstagiÃ¡rio</option>
-                        <option value="Consultor">ðŸ’¡ Consultor</option>
-                        <option value="Diretor">ðŸ‘‘ Diretor</option>
-                        <option value="outro">âž• Outro</option>
+                        <option value="Coordenador">🎯 Coordenador</option>
+                        <option value="Engenheiro">⚙️ Engenheiro</option>
+                        <option value="Arquiteto">🏗️ Arquiteto</option>
+                        <option value="Técnico">🔧 Técnico</option>
+                        <option value="Administrativo">📋 Administrativo</option>
+                        <option value="Estagiário">📚 Estagiário</option>
+                        <option value="Consultor">💡 Consultor</option>
+                        <option value="Diretor">👑 Diretor</option>
+                        <option value="outro">➕ Outro</option>
                     </select>
                     <div class="field-validation">
                         <span class="validation-message" id="registroCargoValidation"></span>
@@ -783,35 +783,35 @@
                 
                 <div class="form-group" id="grupoCargoOutro" style="display: none;">
                     <label for="registroCargoOutro">
-                        âœï¸ Especifique seu cargo
+                        ✏️ Especifique seu cargo
                     </label>
                     <input type="text" id="registroCargoOutro" 
-                           placeholder="Digite seu cargo especÃ­fico">
+                           placeholder="Digite seu cargo específico">
                 </div>
                 
                 <div class="form-group">
                     <label for="registroArea">
-                        ðŸ¢ Ãrea de AtuaÃ§Ã£o
+                        🏢 Área de Atuação
                     </label>
                     <select id="registroArea">
-                        <option value="">Selecione uma Ã¡rea (opcional)...</option>
-                        <option value="Estrutura">ðŸ—ï¸ Estrutura</option>
-                        <option value="InstalaÃ§Ãµes">âš¡ InstalaÃ§Ãµes</option>
-                        <option value="Acabamentos">ðŸŽ¨ Acabamentos</option>
-                        <option value="Paisagismo">ðŸŒ¿ Paisagismo</option>
-                        <option value="AdministraÃ§Ã£o">ðŸ“Š AdministraÃ§Ã£o</option>
-                        <option value="Qualidade">âœ… Qualidade</option>
+                        <option value="">Selecione uma área (opcional)...</option>
+                        <option value="Estrutura">🏗️ Estrutura</option>
+                        <option value="Instalações">⚡ Instalações</option>
+                        <option value="Acabamentos">🎨 Acabamentos</option>
+                        <option value="Paisagismo">🌿 Paisagismo</option>
+                        <option value="Administração">📊 Administração</option>
+                        <option value="Qualidade">✅ Qualidade</option>
                     </select>
                 </div>
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="etapaAnterior()">
-                        â† Voltar
+                        ← Voltar
                     </button>
                     <button type="button" class="btn btn-success" 
                             onclick="finalizarRegistro()" id="btnFinalizarRegistro">
                         <span class="loading hidden" id="loadingRegistro"></span>
-                        âœ¨ Criar Conta
+                        ✨ Criar Conta
                     </button>
                 </div>
             </div>
@@ -825,7 +825,7 @@
             </div>
             
             <p class="terms-text">
-                Ao criar sua conta, vocÃª concorda com os 
+                Ao criar sua conta, você concorda com os 
                 <a href="#" onclick="mostrarTermos()">termos de uso</a> 
                 do sistema.
             </p>
@@ -1135,7 +1135,7 @@
     }
 }
 
-/* AnimaÃ§Ã£o de carregamento */
+/* Animação de carregamento */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -1165,14 +1165,14 @@
 }
 </style>
 
-    <!-- âœ… FIREBASE SCRIPTS ATUALIZADOS PARA VERSÃƒO 11.9.1 -->
+    <!-- ✅ FIREBASE SCRIPTS ATUALIZADOS PARA VERSÃO 11.9.1 -->
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
     
-    <!-- âœ… JAVASCRIPT MODULES EM ORDEM CORRETA -->
+    <!-- ✅ JAVASCRIPT MODULES EM ORDEM CORRETA -->
     
-    <!-- 1. ConfiguraÃ§Ãµes primeiro -->
+    <!-- 1. Configurações primeiro -->
     <script src="assets/js/config/constants.js"></script>
     <script src="assets/js/config/firebase.js"></script>
     
@@ -1187,11 +1187,11 @@
     <script src="assets/js/utils/notifications.js"></script>
     <script src="assets/js/utils/dom.js"></script>
     
-    <!-- âœ… CORREÃ‡ÃƒO INLINE DE DEPENDÃŠNCIAS -->
+    <!-- ✅ CORREÇÃO INLINE DE DEPENDÊNCIAS -->
     <script>
-    // ========== CORREÃ‡ÃƒO INLINE DE DEPENDÃŠNCIAS ==========
+    // ========== CORREÇÃO INLINE DE DEPENDÊNCIAS ==========
     (function() {
-        console.log('ðŸ”§ Aplicando correÃ§Ãµes inline...');
+        console.log('🔧 Aplicando correções inline...');
         
         // Criar DOMUtils para compatibilidade
         window.DOMUtils = {
@@ -1244,19 +1244,19 @@
         if (typeof obterIconeEvento === 'undefined') {
             window.obterIconeEvento = function(tipo) {
                 const icones = {
-                    reuniao: 'ðŸ“…',
-                    entrega: 'ðŸ“¦',
-                    prazo: 'â°',
-                    marco: 'ðŸŽ¯',
-                    outro: 'ðŸ“Œ'
+                    reuniao: '📅',
+                    entrega: '📦',
+                    prazo: '⏰',
+                    marco: '🎯',
+                    outro: '📌'
                 };
-                return icones[tipo] || 'ðŸ“Œ';
+                return icones[tipo] || '📌';
             };
         }
         
-        // Criar funÃ§Ãµes stub para mÃ³dulos faltantes
+        // Criar funções stub para módulos faltantes
         const stubs = {
-            verificarIntegridadeSistema: () => console.log('ðŸ” Verificando integridade...'),
+            verificarIntegridadeSistema: () => console.log('🔍 Verificando integridade...'),
             atualizarDataAtual: () => {
                 const hoje = new Date();
                 const elemento = document.getElementById('dataAtual');
@@ -1270,7 +1270,7 @@
                 }
             },
             iniciarVerificacaoPrazos: () => {
-                console.log('â° VerificaÃ§Ã£o de prazos iniciada');
+                console.log('⏰ Verificação de prazos iniciada');
                 // Verificar a cada hora
                 setInterval(() => {
                     verificarPrazosVencendo();
@@ -1296,7 +1296,7 @@
                                 
                                 if (window.Notifications) {
                                     window.Notifications.atencao(
-                                        `â° Prazo se aproximando: "${atividade.nome}" - ${diasRestantes} dias restantes!`
+                                        `⏰ Prazo se aproximando: "${atividade.nome}" - ${diasRestantes} dias restantes!`
                                     );
                                 }
                             }
@@ -1320,7 +1320,7 @@
                 
                 if (!nome || !prazo || !responsaveis?.length) {
                     if (window.Notifications) {
-                        window.Notifications.erro('Preencha todos os campos obrigatÃ³rios!');
+                        window.Notifications.erro('Preencha todos os campos obrigatórios!');
                     }
                     return;
                 }
@@ -1328,7 +1328,7 @@
                 // Validar prazo
                 if (!validarPrazoAtividade()) return;
                 
-                console.log('ðŸ’¾ Salvando atividade:', nome);
+                console.log('💾 Salvando atividade:', nome);
                 if (window.Notifications) {
                     window.Notifications.sucesso('Atividade salva com sucesso!');
                 }
@@ -1379,7 +1379,7 @@
                     
                     carregarResponsaveisAtividade();
                     
-                    // Selecionar responsÃ¡veis
+                    // Selecionar responsáveis
                     setTimeout(() => {
                         const select = document.getElementById('atividadeResponsaveis');
                         if (select && atividade.responsaveis) {
@@ -1402,7 +1402,7 @@
                     renderizarArea(areaKey);
                     
                     if (window.Notifications) {
-                        window.Notifications.sucesso('Atividade excluÃ­da!');
+                        window.Notifications.sucesso('Atividade excluída!');
                     }
                 }
             },
@@ -1410,19 +1410,19 @@
                 const modal = document.getElementById('modalTarefa');
                 if (modal) {
                     modal.classList.add('active');
-                    console.log('ðŸ“ Modal de nova tarefa aberto');
+                    console.log('📝 Modal de nova tarefa aberto');
                 }
             },
             salvarTarefa: () => {
                 const descricao = document.getElementById('tarefaDescricao')?.value;
                 if (!descricao) {
                     if (window.Notifications) {
-                        window.Notifications.erro('Preencha a descriÃ§Ã£o da tarefa!');
+                        window.Notifications.erro('Preencha a descrição da tarefa!');
                     }
                     return;
                 }
                 
-                console.log('ðŸ’¾ Salvando tarefa:', descricao);
+                console.log('💾 Salvando tarefa:', descricao);
                 if (window.Notifications) {
                     window.Notifications.sucesso('Tarefa salva com sucesso!');
                 }
@@ -1443,21 +1443,21 @@
                 }
             },
             salvarEdicaoTarefa: () => {
-                console.log('ðŸ’¾ Salvando ediÃ§Ã£o de tarefa');
+                console.log('💾 Salvando edição de tarefa');
                 if (window.Notifications) {
                     window.Notifications.sucesso('Tarefa atualizada!');
                 }
                 fecharModal('modalEditarTarefa');
             },
             renderizarAgendaIndividual: (nomePessoa) => {
-                console.log('ðŸ“‹ Renderizando agenda de:', nomePessoa);
+                console.log('📋 Renderizando agenda de:', nomePessoa);
                 
                 // Esconder outras telas
                 document.getElementById('dashboardExecutivo').classList.add('hidden');
                 document.getElementById('painelArea').classList.add('hidden');
                 document.getElementById('agendaIndividual').classList.remove('hidden');
                 
-                // Atualizar informaÃ§Ãµes
+                // Atualizar informações
                 document.getElementById('pessoaNome').textContent = nomePessoa;
                 
                 // Buscar cargo da pessoa
@@ -1506,7 +1506,7 @@
                             <span class="status-indicator status-${resp.status}"></span>
                         </div>
                         <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-                            ðŸ“‚ ${resp.area} | ðŸ“… ${formatarData(resp.prazo)}
+                            📂 ${resp.area} | 📅 ${formatarData(resp.prazo)}
                         </div>
                     </div>
                 `).join('');
@@ -1515,7 +1515,7 @@
                 const container = document.getElementById('agendaSemana');
                 if (!container) return;
                 
-                const diasSemana = ['Segunda', 'TerÃ§a', 'Quarta', 'Quinta', 'Sexta'];
+                const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
                 
                 container.innerHTML = diasSemana.map(dia => `
                     <div class="dia-semana">
@@ -1528,15 +1528,15 @@
             },
             mostrarAdicionarResponsabilidade: () => {
                 if (window.Notifications) {
-                    window.Notifications.info('FunÃ§Ã£o em desenvolvimento...');
+                    window.Notifications.info('Função em desenvolvimento...');
                 }
             },
             salvarObservacoes: () => {
                 const observacoes = document.getElementById('observacoesPessoais')?.value;
-                console.log('ðŸ’¾ Salvando observaÃ§Ãµes:', observacoes);
+                console.log('💾 Salvando observações:', observacoes);
                 
                 if (window.Notifications) {
-                    window.Notifications.sucesso('ObservaÃ§Ãµes salvas!');
+                    window.Notifications.sucesso('Observações salvas!');
                 }
             },
             mostrarMarcarStatus: () => {
@@ -1557,7 +1557,7 @@
                     return;
                 }
                 
-                console.log('ðŸ’¾ Salvando status:', tipo, 'para', data);
+                console.log('💾 Salvando status:', tipo, 'para', data);
                 if (window.Notifications) {
                     window.Notifications.sucesso('Status marcado!');
                 }
@@ -1623,10 +1623,10 @@
                         const importData = JSON.parse(e.target.result);
                         
                         if (!importData.dados) {
-                            throw new Error('Formato invÃ¡lido');
+                            throw new Error('Formato inválido');
                         }
                         
-                        if (confirm('Isso substituirÃ¡ todos os dados atuais. Continuar?')) {
+                        if (confirm('Isso substituirá todos os dados atuais. Continuar?')) {
                             dados = importData.dados;
                             salvarDados();
                             renderizarDashboard();
@@ -1711,7 +1711,7 @@
                 listarFeriados();
                 
                 if (window.Notifications) {
-                    window.Notifications.sucesso('Feriado excluÃ­do!');
+                    window.Notifications.sucesso('Feriado excluído!');
                 }
             },
             abrirSeletorTarefas: () => {
@@ -1724,7 +1724,7 @@
                 if (modal) modal.classList.remove('active');
             },
             filtrarTarefasVinculo: () => {
-                console.log('ðŸ” Filtrando tarefas...');
+                console.log('🔍 Filtrando tarefas...');
             },
             voltarParaArea: () => {
                 if (estadoSistema.areaAtual) {
@@ -1735,14 +1735,14 @@
             }
         };
         
-        // Aplicar stubs apenas se a funÃ§Ã£o nÃ£o existir
+        // Aplicar stubs apenas se a função não existir
         Object.entries(stubs).forEach(([nome, funcao]) => {
             if (typeof window[nome] === 'undefined') {
                 window[nome] = funcao;
             }
         });
         
-        // Adicionar stubs ao window global para outras funÃ§Ãµes auxiliares
+        // Adicionar stubs ao window global para outras funções auxiliares
         window.verificarPrazosVencendo = stubs.verificarPrazosVencendo;
         window.carregarResponsaveisAtividade = stubs.carregarResponsaveisAtividade;
         window.renderizarResponsabilidades = stubs.renderizarResponsabilidades;
@@ -1750,14 +1750,14 @@
         window.listarFeriados = stubs.listarFeriados;
         window.excluirFeriado = stubs.excluirFeriado;
         
-        console.log('âœ… CorreÃ§Ãµes inline aplicadas com sucesso!');
+        console.log('✅ Correções inline aplicadas com sucesso!');
     })();
     </script>
     
     <!-- 4. Feature modules -->
     <script src="assets/js/modules/dashboard.js"></script>
     <script src="assets/js/modules/calendario.js"></script>
-    <!-- Comentar mÃ³dulos que ainda nÃ£o existem
+    <!-- Comentar módulos que ainda não existem
     <script src="assets/js/modules/tarefas.js"></script>
     <script src="assets/js/modules/atividades.js"></script>
     <script src="assets/js/modules/agenda.js"></script>
@@ -1770,7 +1770,5 @@
     <!-- 6. Main app initialization -->
         <script src="assets/js/utils/functions-criticas.js"></script>
     <script src="assets/js/app.js"></script>
-    <script src="assets/js/core/auto-org.js"></script>
 </body>
 </html>
-
