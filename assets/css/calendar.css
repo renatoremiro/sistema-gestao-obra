@@ -1,1 +1,449 @@
- 
+/* ==========================================================================
+   CALENDÁRIO - Sistema de Gestão v5.1
+   ========================================================================== */
+
+/* ===== GRID DO CALENDÁRIO ===== */
+.calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xl);
+}
+
+/* ===== HEADER DOS DIAS DA SEMANA ===== */
+.dia-header {
+    background: var(--text-primary);
+    color: var(--text-light);
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: var(--font-weight-bold);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.5px;
+}
+
+/* ===== CÉLULAS DOS DIAS ===== */
+.dia {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    padding: var(--spacing-sm);
+    min-height: var(--calendar-cell-min-height);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+}
+
+.dia:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* ===== DIAS ESPECIAIS ===== */
+.dia-feriado {
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning);
+}
+
+.dia-feriado:hover {
+    border-color: var(--color-warning);
+    background: #fef3c7;
+}
+
+/* ===== NÚMERO DO DIA ===== */
+.dia-numero {
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-xs);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.dia-numero span:first-child {
+    font-size: var(--font-size-base);
+}
+
+/* ===== LABEL DE FERIADO ===== */
+.feriado-label {
+    font-size: var(--font-size-xs);
+    background: var(--color-warning);
+    color: var(--text-light);
+    padding: 2px var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* ===== EVENTOS NO CALENDÁRIO ===== */
+.evento {
+    background: var(--color-primary);
+    color: var(--text-light);
+    padding: var(--spacing-xs) var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    margin-top: var(--spacing-xs);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+    transition: all var(--transition-normal);
+    user-select: none;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.evento:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: var(--z-dropdown);
+}
+
+.evento:hover::before {
+    content: '✏️';
+    position: absolute;
+    right: -18px;
+    top: 0;
+    opacity: 0.7;
+    font-size: var(--font-size-xs);
+    background: var(--bg-primary);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===== TIPOS DE EVENTOS ===== */
+.evento-reuniao { 
+    background: var(--color-primary); 
+}
+
+.evento-entrega { 
+    background: var(--color-success); 
+}
+
+.evento-prazo { 
+    background: var(--color-danger); 
+}
+
+.evento-marco { 
+    background: var(--color-purple); 
+}
+
+.evento-outro { 
+    background: var(--color-secondary); 
+}
+
+/* ===== EVENTOS ESPECIAIS ===== */
+.evento-dia-completo {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-purple) 100%);
+    margin: 2px -4px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-weight: var(--font-weight-medium);
+    box-shadow: var(--shadow-sm);
+}
+
+.evento-multi-dia {
+    border-left: 3px solid #1e40af;
+    background: linear-gradient(to right, var(--color-primary), #60a5fa);
+    padding-left: var(--spacing-sm);
+}
+
+/* ===== ESTRUTURA INTERNA DO EVENTO ===== */
+.evento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.evento-header span:first-child {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evento-info {
+    font-size: 9px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: 1px;
+}
+
+.evento-duracao {
+    font-size: 9px;
+    opacity: 0.8;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+/* ===== INDICADOR DE EVENTO RECORRENTE ===== */
+.recorrente-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 1px 3px;
+    line-height: 1;
+}
+
+/* ===== LEGENDA DO CALENDÁRIO ===== */
+.calendario-legenda {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    font-size: var(--font-size-xs);
+    align-items: center;
+}
+
+.calendario-legenda span {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+/* ===== NAVEGAÇÃO DO CALENDÁRIO ===== */
+.calendario-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.calendario-nav h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+}
+
+.calendario-controles {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* ===== MINI CALENDÁRIO (se necessário) ===== */
+.mini-calendario {
+    max-width: 300px;
+}
+
+.mini-calendario .dia {
+    min-height: 40px;
+    padding: var(--spacing-xs);
+}
+
+.mini-calendario .dia-numero {
+    font-size: var(--font-size-xs);
+    justify-content: center;
+}
+
+.mini-calendario .evento {
+    font-size: 9px;
+    padding: 1px 3px;
+}
+
+/* ===== EVENTOS TAREFAS PESSOAIS NO CALENDÁRIO ===== */
+.evento-tarefa-pessoal {
+    background: var(--color-info);
+    border-left: 3px solid #0891b2;
+}
+
+.evento-tarefa-global {
+    background: var(--color-purple-bg);
+    color: var(--color-purple);
+    border: 1px solid var(--color-purple);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ===== STATES ESPECIAIS ===== */
+.dia.hoje {
+    border-color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.dia.outro-mes {
+    opacity: 0.3;
+    background: var(--bg-secondary);
+}
+
+.dia.outro-mes:hover {
+    opacity: 0.6;
+}
+
+/* ===== TOOLTIP DO EVENTO ===== */
+.evento-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: var(--text-light);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+    z-index: var(--z-tooltip);
+    max-width: 200px;
+    white-space: normal;
+    line-height: var(--line-height-normal);
+}
+
+.evento:hover .evento-tooltip {
+    opacity: 1;
+}
+
+/* ===== CONTROLES DE ZOOM DO CALENDÁRIO ===== */
+.calendario-zoom {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.calendario-zoom button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+}
+
+.calendario.zoom-pequeno .dia {
+    min-height: 60px;
+    padding: var(--spacing-xs);
+}
+
+.calendario.zoom-pequeno .evento {
+    font-size: 9px;
+    padding: 1px 3px;
+}
+
+.calendario.zoom-grande .dia {
+    min-height: 140px;
+    padding: var(--spacing-md);
+}
+
+.calendario.zoom-grande .evento {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* ===== SELEÇÃO DE MÚLTIPLOS DIAS ===== */
+.dia.selecionado {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.selecionando .dia:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* ===== ARRASTAR E SOLTAR EVENTOS ===== */
+.evento.arrastando {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: var(--z-modal);
+}
+
+.dia.drop-target {
+    background: var(--color-success-bg);
+    border-color: var(--color-success);
+    border-style: dashed;
+}
+
+/* ===== CONFLITOS DE EVENTOS ===== */
+.evento.conflito {
+    border: 2px solid var(--color-warning);
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
+}
+
+.evento.conflito::after {
+    content: '⚠️';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    font-size: 10px;
+}
+
+/* ===== EVENTOS EM MODO EDIÇÃO ===== */
+.evento.editando {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    animation: pulseOutline 1.5s infinite;
+}
+
+@keyframes pulseOutline {
+    0%, 100% { outline-opacity: 1; }
+    50% { outline-opacity: 0.5; }
+}
+
+/* ===== LOADING DO CALENDÁRIO ===== */
+.calendario.carregando {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.calendario.carregando::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-light);
+    border-top-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    animation: spin 1s linear infinite;
+    z-index: var(--z-modal);
+}
+
+/* ===== ESTATÍSTICAS DO MÊS ===== */
+.calendario-stats {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    border: 1px solid var(--border-light);
+}
+
+.calendario-stats div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.calendario-stats .numero {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+.calendario-stats .label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+} 

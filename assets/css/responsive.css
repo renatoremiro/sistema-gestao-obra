@@ -1,1 +1,674 @@
- 
+ /* ==========================================================================
+   RESPONSIVE DESIGN - Sistema de Gestão v5.1
+   ========================================================================== */
+
+/* ===== TABLET - 768px e abaixo ===== */
+@media (max-width: 768px) {
+    
+    /* === LAYOUT GERAL === */
+    body {
+        padding: var(--spacing-md);
+    }
+    
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+    
+    /* === HEADER === */
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+    }
+    
+    .header h1 {
+        font-size: var(--font-size-xl);
+    }
+    
+    .header div:last-child {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-sm);
+    }
+    
+    /* === GRID ADAPTADO === */
+    .grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    /* === CALENDÁRIO TABLET === */
+    .calendario {
+        grid-template-columns: repeat(7, 1fr);
+        gap: var(--spacing-xs);
+    }
+    
+    .dia {
+        min-height: 80px;
+        padding: var(--spacing-xs);
+        font-size: var(--font-size-xs);
+    }
+    
+    .dia-numero {
+        font-size: var(--font-size-xs);
+        margin-bottom: 2px;
+    }
+    
+    .evento {
+        font-size: 10px;
+        padding: 2px var(--spacing-xs);
+        margin-top: 2px;
+    }
+    
+    .evento-header {
+        gap: 2px;
+    }
+    
+    .evento-info {
+        font-size: 8px;
+    }
+    
+    /* === AGENDA SEMANA === */
+    .agenda-semana {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    /* === MODAL ADAPTADO === */
+    .modal-content {
+        padding: var(--spacing-xl);
+        margin: var(--spacing-md);
+        width: calc(100% - 32px);
+        max-height: calc(100vh - 64px);
+    }
+    
+    /* === FORMULÁRIOS === */
+    .horario-group {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .checkbox-group {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    /* === BOTÕES === */
+    .btn {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-sm) var(--spacing-lg);
+    }
+    
+    .btn-sm {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    /* === SYNC E USERS INDICATORS === */
+    .sync-indicator {
+        bottom: 10px;
+        right: 10px;
+        padding: var(--spacing-sm) var(--spacing-lg);
+        font-size: var(--font-size-xs);
+    }
+    
+    .users-online {
+        bottom: 10px;
+        left: 10px;
+        padding: var(--spacing-sm);
+    }
+    
+    /* === ACTIVITY LOG === */
+    .activity-toggle {
+        top: 10px;
+        right: 10px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .activity-log {
+        top: 10px;
+        right: 10px;
+        width: 280px;
+        transform: translateX(300px);
+    }
+    
+    .activity-log.active {
+        transform: translateX(0);
+    }
+}
+
+/* ===== MOBILE - 640px e abaixo ===== */
+@media (max-width: 640px) {
+    
+    /* === LAYOUT MOBILE === */
+    body {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* === HEADER MOBILE === */
+    .header {
+        padding: var(--spacing-lg);
+    }
+    
+    .header h1 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .header p {
+        font-size: var(--font-size-xs);
+    }
+    
+    /* === STATS GRID MOBILE === */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .resumo-numero {
+        font-size: var(--font-size-2xl);
+    }
+    
+    /* === CALENDÁRIO MOBILE === */
+    .calendario {
+        gap: 2px;
+    }
+    
+    .dia {
+        min-height: var(--calendar-cell-mobile-height);
+        padding: 2px;
+        border-radius: var(--radius-sm);
+    }
+    
+    .dia-numero {
+        font-size: 11px;
+        margin-bottom: 1px;
+    }
+    
+    .dia-numero span:first-child {
+        font-size: var(--font-size-xs);
+    }
+    
+    .feriado-label {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+    
+    .evento {
+        font-size: 9px;
+        padding: 1px 3px;
+        margin-top: 1px;
+        border-radius: 2px;
+    }
+    
+    .evento-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+    }
+    
+    .evento-info {
+        font-size: 7px;
+        margin-top: 0;
+    }
+    
+    .evento-duracao {
+        font-size: 7px;
+        margin-top: 1px;
+    }
+    
+    .recorrente-indicator {
+        font-size: 8px;
+        padding: 0 2px;
+    }
+    
+    /* === NAVEGAÇÃO CALENDÁRIO MOBILE === */
+    .calendario-nav {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+    }
+    
+    .calendario-controles {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* === MODAL MOBILE === */
+    .modal-content {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-sm);
+        width: calc(100% - 16px);
+        max-height: calc(100vh - 32px);
+        border-radius: var(--radius-md);
+    }
+    
+    .modal-content h3 {
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    /* === FORMULÁRIOS MOBILE === */
+    .form-group {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .form-group label {
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: var(--spacing-md);
+        font-size: var(--font-size-sm);
+        border-radius: var(--radius-md);
+    }
+    
+    /* === BOTÕES MOBILE === */
+    .btn {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-size-sm);
+        min-height: 44px; /* Touch target */
+        justify-content: center;
+    }
+    
+    .btn-sm {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-xs);
+        min-height: 36px;
+    }
+    
+    /* === SEARCH BOX MOBILE === */
+    .search-box {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .search-box input {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-md);
+    }
+    
+    /* === FILTER PILLS MOBILE === */
+    .filter-pills {
+        justify-content: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .filter-pill {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-size-xs);
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* === PESSOAS SELECIONADAS MOBILE === */
+    .pessoas-selecionadas {
+        gap: var(--spacing-xs);
+    }
+    
+    .pessoa-chip {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    /* === TIMELINE MOBILE === */
+    .timeline-container {
+        padding: var(--spacing-lg);
+    }
+    
+    .timeline-item {
+        padding-left: var(--spacing-2xl);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .timeline-marker {
+        left: -6px;
+        width: 10px;
+        height: 10px;
+        border-width: 2px;
+    }
+    
+    .timeline-content {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* === BREADCRUMB MOBILE === */
+    .breadcrumb {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+        text-align: center;
+    }
+    
+    /* === BACK BUTTON MOBILE === */
+    .back-btn {
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* === LOGIN MOBILE === */
+    .login-container {
+        margin: var(--spacing-2xl) auto;
+        padding: var(--spacing-2xl);
+        width: calc(100% - 32px);
+        max-width: 100%;
+    }
+    
+    .login-container h2 {
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-2xl);
+    }
+    
+    /* === INDICATORS MOBILE === */
+    .sync-indicator {
+        bottom: 5px;
+        right: 5px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 11px;
+        border-radius: var(--radius-sm);
+    }
+    
+    .users-online {
+        bottom: 5px;
+        left: 5px;
+        padding: var(--spacing-xs);
+        border-radius: var(--radius-sm);
+    }
+    
+    .users-online div:first-child {
+        font-size: 11px;
+    }
+    
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-xs);
+    }
+    
+    /* === ACTIVITY LOG MOBILE === */
+    .activity-toggle {
+        top: 5px;
+        right: 5px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 11px;
+        border-radius: var(--radius-sm);
+    }
+    
+    .activity-log {
+        top: 5px;
+        right: 5px;
+        width: calc(100vw - 10px);
+        max-width: 300px;
+        transform: translateX(calc(100vw));
+    }
+    
+    .activity-log.active {
+        transform: translateX(0);
+    }
+    
+    .activity-log-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .activity-log-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .activity-item {
+        padding: var(--spacing-xs);
+        font-size: 11px;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    /* === NOTIFICAÇÃO MOBILE === */
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        padding: var(--spacing-md);
+        font-size: var(--font-size-sm);
+        border-radius: var(--radius-md);
+    }
+    
+    /* === ALERTAS MOBILE === */
+    .alerta-prazo {
+        top: 60px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* === CARDS MOBILE === */
+    .card {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .area-card:hover {
+        transform: none; /* Remover hover em mobile */
+    }
+    
+    /* === TAREFAS MOBILE === */
+    .tarefa {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs);
+    }
+    
+    .tarefa-item {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .tarefa-header {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+    
+    .tarefa-expandir {
+        width: 16px;
+        height: 16px;
+        font-size: var(--font-size-xs);
+    }
+    
+    .tarefa-checkbox {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .tarefa-descricao {
+        font-size: var(--font-size-sm);
+    }
+    
+    .tarefa-info {
+        font-size: 11px;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+}
+
+/* ===== MOBILE MUITO PEQUENO - 480px e abaixo ===== */
+@media (max-width: 480px) {
+    
+    body {
+        padding: var(--spacing-xs);
+    }
+    
+    .header {
+        padding: var(--spacing-md);
+    }
+    
+    .header h1 {
+        font-size: var(--font-size-base);
+    }
+    
+    /* === CALENDÁRIO EXTRA SMALL === */
+    .dia {
+        min-height: 50px;
+        padding: 1px;
+    }
+    
+    .dia-numero {
+        font-size: 10px;
+    }
+    
+    .evento {
+        font-size: 8px;
+        padding: 1px 2px;
+    }
+    
+    .evento-header {
+        font-size: 8px;
+    }
+    
+    .evento-info,
+    .evento-duracao {
+        display: none; /* Ocultar em telas muito pequenas */
+    }
+    
+    /* === MODAL EXTRA SMALL === */
+    .modal-content {
+        padding: var(--spacing-md);
+        margin: var(--spacing-xs);
+        width: calc(100% - 8px);
+    }
+    
+    /* === ACTIVITY LOG EXTRA SMALL === */
+    .activity-log {
+        width: calc(100vw - 5px);
+    }
+}
+
+/* ===== ORIENTAÇÃO LANDSCAPE MOBILE ===== */
+@media (max-width: 768px) and (orientation: landscape) {
+    
+    .calendario {
+        gap: 1px;
+    }
+    
+    .dia {
+        min-height: 60px;
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 20px);
+        padding: var(--spacing-md);
+    }
+    
+    .header {
+        padding: var(--spacing-md);
+    }
+    
+    .activity-log {
+        max-height: calc(100vh - 10px);
+    }
+}
+
+/* ===== HOVER STATES APENAS PARA DESKTOP ===== */
+@media (hover: hover) and (pointer: fine) {
+    
+    /* Manter hover effects apenas em desktop */
+    .dia:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
+    
+    .evento:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .area-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-lg);
+    }
+}
+
+/* ===== REMOVER HOVER EM TOUCH DEVICES ===== */
+@media (hover: none) {
+    
+    .dia:hover,
+    .evento:hover,
+    .area-card:hover,
+    .btn:hover,
+    .filter-pill:hover,
+    .back-btn:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: initial;
+    }
+    
+    /* Melhorar tap targets */
+    .evento,
+    .btn,
+    .filter-pill,
+    .delete-btn,
+    .edit-btn {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delete-btn,
+    .edit-btn {
+        opacity: 1; /* Sempre visível em touch */
+        min-width: 44px;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .sync-indicator,
+    .users-online,
+    .activity-toggle,
+    .activity-log,
+    .notification,
+    .modal,
+    .btn,
+    .back-btn {
+        display: none !important;
+    }
+    
+    .calendario {
+        gap: 1px;
+        page-break-inside: avoid;
+    }
+    
+    .dia {
+        border: 1px solid #000;
+        page-break-inside: avoid;
+    }
+    
+    .header {
+        page-break-after: avoid;
+    }
+}
