@@ -676,6 +676,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
     
     <!-- ✅ JAVASCRIPT MODULES EM ORDEM CORRETA -->
+    
     <!-- 1. Configurações primeiro -->
     <script src="assets/js/config/constants.js"></script>
     <script src="assets/js/config/firebase.js"></script>
@@ -691,18 +692,26 @@
     <script src="assets/js/utils/notifications.js"></script>
     <script src="assets/js/utils/dom.js"></script>
     
-    <!-- 4. Feature modules -->
+    <!-- ✅ 4. CORREÇÕES E COMPATIBILIDADE -->
+    <script src="assets/js/fix-dependencies.js"></script>
+    
+    <!-- ✅ 5. MÓDULOS MÍNIMOS (temporário) -->
+    <script src="assets/js/minimal-modules.js"></script>
+    
+    <!-- 6. Feature modules (quando disponíveis) -->
     <script src="assets/js/modules/dashboard.js"></script>
     <script src="assets/js/modules/calendario.js"></script>
+    <!-- Comentar módulos que ainda não existem
     <script src="assets/js/modules/tarefas.js"></script>
     <script src="assets/js/modules/atividades.js"></script>
     <script src="assets/js/modules/agenda.js"></script>
     <script src="assets/js/modules/relatorios.js"></script>
+    -->
     
-    <!-- 5. Core initialization -->
+    <!-- 7. Core initialization -->
     <script src="assets/js/core/init.js"></script>
     
-    <!-- 6. Main app initialization -->
+    <!-- 8. Main app initialization -->
     <script src="assets/js/app.js"></script>
 </body>
 </html>
