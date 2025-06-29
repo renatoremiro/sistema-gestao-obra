@@ -1,829 +1,744 @@
 /* ==========================================================================
-   APP.JS - ORQUESTRAÇÃO PRINCIPAL - Sistema de Gestão v5.1
+   SISTEMA DE SINCRONIZAÇÃO - Sistema de Gestão v5.1 - CORRIGIDO
    ========================================================================== */
 
 /**
- * Arquivo principal do sistema que orquestra todos os módulos
- * Responsável pela inicialização, configuração e coordenação de todos os componentes
+ * CORREÇÃO CRÍTICA: Imports Firebase Database adequados
+ * Compatibilidade Firebase v8/v9+ com rate limiting
  */
 
 /**
- * ========== VERIFICAÇÃO DE DEPENDÊNCIAS ==========
+ * Função compatível para obter Database (Firebase v8/v9)
  */
+function obterDatabaseCompativel() {
+    // Firebase v9+ (modular)
+    if (typeof getDatabase !== 'undefined') {
+        return getDatabase();
+    }
+    // Firebase v8 (namespaced)
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        return firebase.database();
+    }
+    
+    throw new Error('Firebase Database não disponível. Verifique configuração.');
+}
 
 /**
- * Verifica se todos os módulos necessários estão carregados
+ * Função compatível para ServerValue
  */
-function verificarDependencias() {
-    const modulosObrigatorios = [
-        { nome: 'Firebase', verificacao: () => typeof firebase !== 'undefined' },
-        { nome: 'DOMUtils', verificacao: () => typeof window.DOMUtils !== 'undefined' },
-        { nome: 'Helpers', verificacao: () => typeof window.Helpers !== 'undefined' },
-        { nome: 'Notifications', verificacao: () => typeof window.Notifications !== 'undefined' },
-        { nome: 'Validators', verificacao: () => typeof window.Validators !== 'undefined' }
-    ];
+function obterServerValue() {
+    // Firebase v9+
+    if (typeof serverTimestamp !== 'undefined') {
+        return { TIMESTAMP: serverTimestamp() };
+    }
+    // Firebase v8
+    if (typeof firebase !== 'undefined' && firebase.database?.ServerValue) {
+        return firebase.database.ServerValue;
+    }
     
-    const modulosFaltando = modulosObrigatorios.filter(modulo => !modulo.verificacao());
+    return { TIMESTAMP: Date.now() };
+}
+
+/**
+ * Rate Limiting Inteligente para sincronização
+ */
+const SyncRateLimit = {
+    lastSave: 0,
+    minInterval: 2000, // 2 segundos mínimo entre saves
+    saveQueue: new Set(),
+    isProcessing: false,
     
-    if (modulosFaltando.length > 0) {
-        console.error('❌ Módulos não carregados:', modulosFaltando.map(m => m.nome));
+    canSave() {
+        const now = Date.now();
+        return (now - this.lastSave) >= this.minInterval;
+    },
+    
+    async queueSave(operation) {
+        this.saveQueue.add(operation);
+        if (!this.isProcessing) {
+            await this.processQueue();
+        }
+    },
+    
+    async processQueue() {
+        if (this.saveQueue.size === 0) return;
+        
+        this.isProcessing = true;
+        
+        if (this.canSave()) {
+            const operations = Array.from(this.saveQueue);
+            this.saveQueue.clear();
+            
+            try {
+                // Processar todas as operações em batch
+                await Promise.all(operations.map(op => op()));
+                this.lastSave = Date.now();
+            } catch (error) {
+                console.error('❌ Erro no batch de sincronização:', error);
+            }
+        } else {
+            // Aguardar intervalo mínimo
+            const waitTime = this.minInterval - (Date.now() - this.lastSave);
+            setTimeout(() => this.processQueue(), waitTime);
+        }
+        
+        this.isProcessing = false;
+    }
+};
+
+/**
+ * Variáveis globais de sincronização
+ */
+let listenersDados = {};
+let presenceRef = null;
+let connectedRef = null;
+let syncTimeout = null;
+let conflitosResolucao = null;
+let ultimaSincronizacao = null;
+let databaseInstance = null;
+
+/**
+ * Inicializar database instance
+ */
+function inicializarDatabase() {
+    try {
+        databaseInstance = obterDatabaseCompativel();
+        console.log('✅ Database instance inicializada');
+        return true;
+    } catch (error) {
+        console.error('❌ Erro ao inicializar database:', error);
         return false;
     }
-    
-    console.log('✅ Todas as dependências carregadas com sucesso');
-    return true;
 }
 
 /**
- * ========== CONFIGURAÇÃO GLOBAL DO SISTEMA ==========
+ * Função para configurar sistema de presença online - CORRIGIDA
  */
-
-const SISTEMA_CONFIG = {
-    versao: '5.1',
-    nome: 'Sistema de Gestão Colaborativo',
-    projeto: 'Obra 292 - Museu Nacional',
-    ambiente: 'production', // 'development' | 'production'
-    
-    // Configurações de inicialização
-    inicializacao: {
-        verificarIntegridade: true,
-        carregarDadosIniciais: true,
-        configurarEventosGlobais: true,
-        iniciarMonitoramento: true,
-        habilitarDebug: false // true em desenvolvimento
-    },
-    
-    // Configurações de performance
-    performance: {
-        debounceSearch: 300,
-        throttleResize: 250,
-        autosaveInterval: 30000, // 30 segundos
-        heartbeatInterval: 60000 // 1 minuto
-    },
-    
-    // Configurações de validação
-    validacao: {
-        tempoRealValidation: true,
-        mostrarTooltips: true,
-        animarErros: true
-    }
-};
-
-/**
- * ========== ESTADO GLOBAL DA APLICAÇÃO ==========
- */
-
-let AppState = {
-    // Status da aplicação
-    inicializado: false,
-    autenticado: false,
-    online: true,
-    sincronizando: false,
-    
-    // Dados do usuário
-    usuario: null,
-    permissoes: [],
-    
-    // Estado da interface
-    telaAtual: 'dashboard',
-    modalAberto: null,
-    filtrosAtivos: new Map(),
-    
-    // Cache e performance
-    cache: new Map(),
-    intervalos: new Map(),
-    
-    // Debug e logs
-    logs: [],
-    metricas: {
-        tempoInicializacao: 0,
-        tempoCarregamento: 0,
-        erros: 0,
-        operacoes: 0
-    }
-};
-
-/**
- * ========== INICIALIZAÇÃO PRINCIPAL ==========
- */
-
-/**
- * Função principal de inicialização do sistema
- */
-async function inicializarSistema() {
-    const tempoInicio = performance.now();
-    
-    try {
-        console.log(`🚀 Iniciando ${SISTEMA_CONFIG.nome} v${SISTEMA_CONFIG.versao}`);
-        console.log(`📋 Projeto: ${SISTEMA_CONFIG.projeto}`);
-        
-        // 1. Verificar dependências
-        if (!verificarDependencias()) {
-            throw new Error('Dependências não carregadas');
-        }
-        
-        // 2. Configurar ambiente
-        configurarAmbiente();
-        
-        // 3. Inicializar módulos base
-        await inicializarModulosBase();
-        
-        // 4. Configurar Firebase
-        await configurarFirebase();
-        
-        // 5. Verificar autenticação
-        await verificarAutenticacao();
-        
-        // 6. Inicializar interface
-        inicializarInterface();
-        
-        // 7. Configurar eventos globais
-        configurarEventosGlobais();
-        
-        // 8. Iniciar monitoramento
-        iniciarMonitoramento();
-        
-        // 9. Carregar dados iniciais
-        if (AppState.autenticado) {
-            await carregarDadosIniciais();
-        }
-        
-        // 10. Finalizar inicialização
-        finalizarInicializacao(tempoInicio);
-        
-    } catch (error) {
-        console.error('❌ Erro na inicialização:', error);
-        tratarErroInicializacao(error);
-    }
-}
-
-/**
- * Configura o ambiente da aplicação
- */
-function configurarAmbiente() {
-    // Configurar console.log baseado no ambiente
-    if (SISTEMA_CONFIG.ambiente === 'production' && !SISTEMA_CONFIG.inicializacao.habilitarDebug) {
-        console.log = () => {}; // Silenciar logs em produção
+function configurarPresenca() {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) {
+        console.warn('⚠️ Usuário não logado para configurar presença');
+        return;
     }
     
-    // Configurar tratamento de erros globais
-    window.addEventListener('error', (event) => {
-        AppState.metricas.erros++;
-        console.error('Erro JavaScript:', event.error);
-        
-        if (window.Notifications) {
-            window.Notifications.erro('Erro inesperado no sistema');
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Não foi possível configurar presença - database indisponível');
+        return;
+    }
+    
+    console.log('👥 Configurando presença online para:', usuarioAtual.email);
+    
+    const uid = usuarioAtual.uid;
+    
+    presenceRef = databaseInstance.ref(`presence/${uid}`);
+    connectedRef = databaseInstance.ref('.info/connected');
+    
+    const userStatus = {
+        uid: uid,
+        email: usuarioAtual.email,
+        nome: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
+        online: true,
+        ultimaAtividade: obterServerValue().TIMESTAMP,
+        versaoSistema: estadoSistema?.versaoSistema || '5.1'
+    };
+    
+    // Configurar presença
+    connectedRef.on('value', (snapshot) => {
+        if (snapshot.val() === true) {
+            // Remover presença quando desconectar
+            presenceRef.onDisconnect().remove();
+            // Definir como online
+            presenceRef.set(userStatus);
+            console.log('🟢 Presença online configurada');
         }
     });
     
-    // Configurar tratamento de promises rejeitadas
-    window.addEventListener('unhandledrejection', (event) => {
-        AppState.metricas.erros++;
-        console.error('Promise rejeitada:', event.reason);
+    // Monitorar usuários online
+    databaseInstance.ref('presence').on('value', (snapshot) => {
+        const usuarios = snapshot.val() || {};
+        atualizarUsuariosOnline(usuarios);
+    });
+}
+
+/**
+ * Função para atualizar lista de usuários online
+ */
+function atualizarUsuariosOnline(usuarios) {
+    const lista = document.getElementById('usersOnlineList');
+    if (!lista) return;
+    
+    lista.innerHTML = '';
+    
+    const usuariosArray = Object.values(usuarios).filter(u => u.online);
+    
+    usuariosArray.forEach(usuario => {
+        const avatar = document.createElement('div');
+        avatar.className = 'user-avatar online';
+        avatar.textContent = usuario.nome ? usuario.nome.charAt(0).toUpperCase() : '?';
         
-        if (window.Notifications) {
-            window.Notifications.erro('Erro de comunicação');
+        const tooltip = document.createElement('div');
+        tooltip.className = 'user-tooltip';
+        tooltip.textContent = `${usuario.nome || usuario.email} - v${usuario.versaoSistema || '?'}`;
+        
+        avatar.appendChild(tooltip);
+        lista.appendChild(avatar);
+    });
+    
+    // Atualizar contador
+    const contador = document.querySelector('.users-online > div:first-child');
+    if (contador) {
+        contador.textContent = `Equipe Online (${usuariosArray.length})`;
+    }
+    
+    console.log(`👥 ${usuariosArray.length} usuários online`);
+}
+
+/**
+ * Função para configurar sincronização de dados - CORRIGIDA
+ */
+function configurarSincronizacao() {
+    console.log('🔄 Configurando sincronização de dados...');
+    
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Não foi possível configurar sincronização - database indisponível');
+        return;
+    }
+    
+    // Listener principal dos dados
+    listenersDados.dados = databaseInstance.ref('dados').on('value', (snapshot) => {
+        const dadosServidor = snapshot.val();
+        
+        if (dadosServidor) {
+            console.log('📥 Dados recebidos do servidor');
+            processarDadosRecebidos(dadosServidor);
+        } else {
+            console.log('📝 Nenhum dado no servidor, inicializando...');
+            if (typeof inicializarDados === 'function') {
+                dados = inicializarDados();
+                salvarDados();
+            }
         }
     });
     
-    console.log('🔧 Ambiente configurado:', SISTEMA_CONFIG.ambiente);
-}
-
-/**
- * Inicializa módulos base do sistema
- */
-async function inicializarModulosBase() {
-    console.log('📦 Inicializando módulos base...');
-    
-    // Inicializar utilitários
-    if (window.Notifications) {
-        window.Notifications.inicializar();
-    }
-    
-    if (window.Validators) {
-        window.Validators.inicializar();
-    }
-    
-    // Configurar notificações
-    if (window.Notifications) {
-        window.Notifications.posicao('top-right');
-    }
-    
-    console.log('✅ Módulos base inicializados');
-}
-
-/**
- * Configura conexão com Firebase
- */
-async function configurarFirebase() {
-    console.log('🔥 Configurando Firebase...');
-    
-    try {
-        // Verificar se Firebase está configurado no HTML
-        if (typeof firebase === 'undefined') {
-            throw new Error('Firebase não carregado');
-        }
-        
-        // Verificar se as configurações estão presentes
-        if (!firebase.apps.length) {
-            throw new Error('Firebase não inicializado no HTML');
-        }
-        
-        // Configurar listener de conexão
-        const connectedRef = firebase.database().ref('.info/connected');
-        connectedRef.on('value', (snapshot) => {
-            AppState.online = snapshot.val() === true;
+    // Listener de atividades (log)
+    listenersDados.atividades = databaseInstance.ref('atividades')
+        .orderByChild('timestamp')
+        .limitToLast(50)
+        .on('child_added', (snapshot) => {
+            const atividade = snapshot.val();
+            const usuarioAtual = obterUsuarioAtual();
             
-            if (window.Notifications) {
-                if (AppState.online) {
-                    window.Notifications.sincronizacao('synced');
-                } else {
-                    window.Notifications.sincronizacao('offline');
-                }
+            if (atividade && atividade.usuario !== usuarioAtual?.email) {
+                adicionarAtividadeLog(atividade);
             }
         });
-        
-        console.log('✅ Firebase configurado com sucesso');
-        
-    } catch (error) {
-        console.error('❌ Erro ao configurar Firebase:', error);
-        throw error;
-    }
-}
-
-/**
- * Verifica estado de autenticação
- */
-async function verificarAutenticacao() {
-    console.log('🔐 Verificando autenticação...');
     
-    return new Promise((resolve) => {
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                AppState.autenticado = true;
-                AppState.usuario = {
-                    uid: user.uid,
-                    email: user.email,
-                    nome: user.displayName || user.email.split('@')[0]
-                };
-                
-                console.log('✅ Usuário autenticado:', AppState.usuario.nome);
-                
-                // Esconder tela de login se estiver visível
-                if (window.DOMUtils) {
-                    window.DOMUtils.hide('loginScreen');
-                    window.DOMUtils.show('mainContainer');
-                }
-                
-                resolve(true);
-            } else {
-                AppState.autenticado = false;
-                AppState.usuario = null;
-                
-                console.log('ℹ️ Usuário não autenticado');
-                
-                // Mostrar tela de login
-                if (window.DOMUtils) {
-                    window.DOMUtils.show('loginScreen');
-                    window.DOMUtils.hide('mainContainer');
-                }
-                
-                resolve(false);
-            }
-        });
-    });
-}
-
-/**
- * Inicializa elementos da interface
- */
-function inicializarInterface() {
-    console.log('🎨 Inicializando interface...');
-    
-    try {
-        // Atualizar informações do sistema
-        atualizarInfoSistema();
-        
-        // Configurar data atual
-        atualizarDataAtual();
-        
-        // Inicializar tooltips
-        inicializarTooltips();
-        
-        // Configurar atalhos de teclado
-        configurarAtalhosTeclado();
-        
-        console.log('✅ Interface inicializada');
-        
-    } catch (error) {
-        console.error('❌ Erro ao inicializar interface:', error);
-    }
-}
-
-/**
- * Atualiza informações do sistema na interface
- */
-function atualizarInfoSistema() {
-    if (AppState.usuario && window.DOMUtils) {
-        window.DOMUtils.setText('usuarioInfo', `👤 ${AppState.usuario.nome}`);
-    }
-    
-    // Atualizar versão se existir elemento
-    const versaoEl = document.querySelector('[data-versao]');
-    if (versaoEl) {
-        versaoEl.textContent = `v${SISTEMA_CONFIG.versao}`;
-    }
-}
-
-/**
- * Atualiza data atual na interface
- */
-function atualizarDataAtual() {
-    const hoje = new Date();
-    const opcoes = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    };
-    
-    if (window.DOMUtils) {
-        window.DOMUtils.setText('dataAtual', hoje.toLocaleDateString('pt-BR', opcoes));
-    }
-    
-    // Atualizar mês/ano
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
-    if (window.DOMUtils) {
-        window.DOMUtils.setText('mesAno', `${meses[hoje.getMonth()]} ${hoje.getFullYear()}`);
-    }
-}
-
-/**
- * Inicializa tooltips do sistema
- */
-function inicializarTooltips() {
-    // Configurar tooltips para elementos com data-tooltip
-    document.addEventListener('mouseover', (e) => {
-        const elemento = e.target.closest('[data-tooltip]');
-        if (elemento && !elemento.querySelector('.tooltip-content')) {
-            mostrarTooltip(elemento);
-        }
+    // Listener de status de edição
+    listenersDados.editando = databaseInstance.ref('editando').on('value', (snapshot) => {
+        const editando = snapshot.val() || {};
+        atualizarIndicadoresEdicao(editando);
     });
     
-    document.addEventListener('mouseout', (e) => {
-        const elemento = e.target.closest('[data-tooltip]');
-        if (elemento) {
-            ocultarTooltip(elemento);
-        }
-    });
+    // Listener de conexão
+    configurarMonitoramentoConexao();
+    
+    console.log('✅ Sincronização configurada');
 }
 
 /**
- * Configura atalhos de teclado globais
+ * Configurar monitoramento de conexão
  */
-function configurarAtalhosTeclado() {
-    document.addEventListener('keydown', (e) => {
-        // Ctrl+S - Salvar
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            salvarDados();
-        }
-        
-        // Ctrl+Shift+I - Verificar integridade
-        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-            e.preventDefault();
-            verificarIntegridadeSistema();
-        }
-        
-        // Escape - Fechar modais
-        if (e.key === 'Escape') {
-            fecharTodosModais();
-        }
-        
-        // F5 - Recarregar com confirmação
-        if (e.key === 'F5' && !e.ctrlKey) {
-            if (AppState.sincronizando) {
-                e.preventDefault();
-                if (window.Notifications) {
-                    window.Notifications.atencao('Aguarde a sincronização terminar');
-                }
-            }
-        }
-    });
-}
-
-/**
- * Configura eventos globais do sistema
- */
-function configurarEventosGlobais() {
-    console.log('⚡ Configurando eventos globais...');
+function configurarMonitoramentoConexao() {
+    if (!databaseInstance) return;
     
-    // Evento de resize com throttle
-    if (window.Helpers) {
-        const handleResize = window.Helpers.throttle(() => {
-            // Atualizar layout responsivo se necessário
-            atualizarLayoutResponsivo();
-        }, SISTEMA_CONFIG.performance.throttleResize);
+    databaseInstance.ref('.info/connected').on('value', (snapshot) => {
+        const connected = snapshot.val();
         
-        window.addEventListener('resize', handleResize);
-    }
-    
-    // Evento de visibilidade da página
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            // Página ficou oculta - pausar operações pesadas
-            pausarOperacoesPesadas();
+        if (estadoSistema) {
+            estadoSistema.online = connected;
+        }
+        
+        if (connected) {
+            console.log('🌐 Conexão Firebase restaurada');
+            atualizarIndicadorSync('synced');
         } else {
-            // Página ficou visível - retomar operações
-            retomarOperacoesPesadas();
+            console.log('🔴 Conexão Firebase perdida');
+            atualizarIndicadorSync('offline');
         }
     });
-    
-    // Evento antes de sair da página
-    window.addEventListener('beforeunload', (e) => {
-        if (AppState.sincronizando) {
-            e.preventDefault();
-            e.returnValue = 'Dados sendo sincronizados. Tem certeza que deseja sair?';
-        }
-    });
-    
-    console.log('✅ Eventos globais configurados');
 }
 
 /**
- * Inicia monitoramento do sistema
+ * Função para processar dados recebidos do servidor
  */
-function iniciarMonitoramento() {
-    console.log('📊 Iniciando monitoramento...');
+function processarDadosRecebidos(dadosServidor) {
+    const usuarioAtual = obterUsuarioAtual();
     
-    // Heartbeat para verificar saúde do sistema
-    const heartbeat = setInterval(() => {
-        verificarSaudeSistema();
-    }, SISTEMA_CONFIG.performance.heartbeatInterval);
-    
-    AppState.intervalos.set('heartbeat', heartbeat);
-    
-    // Auto-save periódico
-    const autosave = setInterval(() => {
-        if (AppState.autenticado && !AppState.sincronizando) {
-            salvarDadosAutomatico();
-        }
-    }, SISTEMA_CONFIG.performance.autosaveInterval);
-    
-    AppState.intervalos.set('autosave', autosave);
-    
-    console.log('✅ Monitoramento iniciado');
-}
-
-/**
- * Carrega dados iniciais do sistema
- */
-async function carregarDadosIniciais() {
-    console.log('📡 Carregando dados iniciais...');
-    
-    try {
-        AppState.sincronizando = true;
+    if (dados && dados.ultimaAtualizacao && 
+        dadosServidor.ultimaAtualizacao !== dados.ultimaAtualizacao &&
+        new Date(dadosServidor.ultimaAtualizacao) > new Date(dados.ultimaAtualizacao)) {
         
-        if (window.Notifications) {
-            window.Notifications.sincronizacao('syncing');
-        }
-        
-        // Simular carregamento - em implementação real, carregar do Firebase
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        AppState.sincronizando = false;
-        
-        if (window.Notifications) {
-            window.Notifications.sincronizacao('synced');
-        }
-        
-        console.log('✅ Dados iniciais carregados');
-        
-    } catch (error) {
-        AppState.sincronizando = false;
-        console.error('❌ Erro ao carregar dados:', error);
-        
-        if (window.Notifications) {
-            window.Notifications.sincronizacao('error');
-        }
-    }
-}
-
-/**
- * Finaliza processo de inicialização
- */
-function finalizarInicializacao(tempoInicio) {
-    const tempoFim = performance.now();
-    const tempoTotal = tempoFim - tempoInicio;
-    
-    AppState.inicializado = true;
-    AppState.metricas.tempoInicializacao = tempoTotal;
-    
-    console.log(`🎉 Sistema inicializado com sucesso em ${tempoTotal.toFixed(2)}ms`);
-    
-    // Mostrar notificação de boas-vindas
-    if (AppState.autenticado && window.Notifications) {
-        window.Notifications.sucesso(
-            `Bem-vindo(a), ${AppState.usuario.nome}! Sistema v${SISTEMA_CONFIG.versao} pronto.`
-        );
-    }
-    
-    // Disparar evento personalizado
-    window.dispatchEvent(new CustomEvent('sistemaInicializado', {
-        detail: {
-            versao: SISTEMA_CONFIG.versao,
-            tempoInicializacao: tempoTotal,
-            usuario: AppState.usuario
-        }
-    }));
-}
-
-/**
- * ========== FUNÇÕES DE SISTEMA ==========
- */
-
-/**
- * Verifica integridade do sistema
- */
-function verificarIntegridadeSistema() {
-    console.log('🔍 Verificando integridade do sistema...');
-    
-    const verificacoes = {
-        firebase: typeof firebase !== 'undefined' && firebase.apps.length > 0,
-        autenticacao: AppState.autenticado,
-        conexao: AppState.online,
-        modulos: verificarDependencias(),
-        interface: document.getElementById('mainContainer') !== null
-    };
-    
-    const problemas = Object.entries(verificacoes)
-        .filter(([chave, valor]) => !valor)
-        .map(([chave]) => chave);
-    
-    if (problemas.length === 0) {
-        console.log('✅ Sistema íntegro');
-        if (window.Notifications) {
-            window.Notifications.sucesso('Sistema funcionando corretamente');
+        if (temMudancasLocais()) {
+            console.log('⚠️ Conflito detectado');
+            mostrarConflito(dadosServidor);
+        } else {
+            console.log('🔄 Atualizando com dados do servidor');
+            dados = dadosServidor;
+            
+            if (typeof renderizarDashboard === 'function') {
+                renderizarDashboard();
+            }
+            
+            atualizarIndicadorSync('synced');
+            ultimaSincronizacao = new Date();
         }
     } else {
-        console.warn('⚠️ Problemas encontrados:', problemas);
-        if (window.Notifications) {
-            window.Notifications.atencao(`Problemas detectados: ${problemas.join(', ')}`);
-        }
-    }
-    
-    return verificacoes;
-}
-
-/**
- * Verifica saúde do sistema (heartbeat)
- */
-function verificarSaudeSistema() {
-    // Verificar uso de memória
-    if (performance.memory) {
-        const memoria = performance.memory;
-        const usoMemoria = (memoria.usedJSHeapSize / memoria.jsHeapSizeLimit) * 100;
+        dados = dadosServidor;
         
-        if (usoMemoria > 80) {
-            console.warn('⚠️ Alto uso de memória:', usoMemoria.toFixed(1) + '%');
+        if (typeof renderizarDashboard === 'function') {
+            renderizarDashboard();
         }
-    }
-    
-    // Verificar quantidade de listeners
-    const totalListeners = AppState.intervalos.size;
-    if (totalListeners > 20) {
-        console.warn('⚠️ Muitos listeners ativos:', totalListeners);
-    }
-    
-    // Limpeza de cache se necessário
-    if (AppState.cache.size > 100) {
-        limparCache();
+        
+        atualizarIndicadorSync('synced');
+        ultimaSincronizacao = new Date();
     }
 }
 
 /**
- * Salva dados automaticamente
+ * Função para atualizar indicador de sincronização
  */
-function salvarDadosAutomatico() {
-    if (typeof salvarDados === 'function') {
-        console.log('💾 Auto-save executado');
+function atualizarIndicadorSync(status) {
+    const indicator = document.getElementById('syncIndicator');
+    const loader = document.getElementById('syncLoader');
+    const text = document.getElementById('syncText');
+    
+    if (!indicator || !text) return;
+    
+    indicator.className = 'sync-indicator';
+    
+    switch(status) {
+        case 'syncing':
+            indicator.classList.add('syncing');
+            if (loader) loader.style.display = 'inline-block';
+            text.textContent = 'Sincronizando...';
+            break;
+        case 'synced':
+            indicator.classList.add('synced');
+            if (loader) loader.style.display = 'none';
+            text.textContent = '✓ Sincronizado';
+            break;
+        case 'error':
+            indicator.classList.add('error');
+            if (loader) loader.style.display = 'none';
+            text.textContent = '✗ Erro de sincronização';
+            break;
+        case 'offline':
+            indicator.classList.add('offline');
+            if (loader) loader.style.display = 'none';
+            text.textContent = '◉ Offline';
+            break;
+    }
+    
+    // Log do status
+    const statusEmojis = {
+        syncing: '🔄',
+        synced: '✅',
+        error: '❌',
+        offline: '🔴'
+    };
+    console.log(`${statusEmojis[status]} Sync: ${status}`);
+}
+
+/**
+ * Função principal para salvar dados no Firebase - CORRIGIDA COM RATE LIMITING
+ */
+function salvarDados() {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) {
+        console.warn('⚠️ Usuário não logado para salvar dados');
+        return Promise.resolve();
+    }
+    
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Database não disponível para salvar');
+        return Promise.reject(new Error('Database indisponível'));
+    }
+    
+    // Usar rate limiting
+    return SyncRateLimit.queueSave(async () => {
+        try {
+            atualizarIndicadorSync('syncing');
+            
+            dados.ultimaAtualizacao = new Date().toISOString();
+            dados.ultimoUsuario = usuarioAtual.email;
+            dados.versaoSistema = estadoSistema?.versaoSistema || '5.1';
+            
+            await databaseInstance.ref('dados').set(dados);
+            
+            console.log('✅ Dados salvos no Firebase');
+            atualizarIndicadorSync('synced');
+            ultimaSincronizacao = new Date();
+            
+            registrarAtividade('dados_salvos', {
+                usuario: usuarioAtual.email,
+                timestamp: dados.ultimaAtualizacao,
+                versao: dados.versaoSistema
+            });
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Erro ao salvar:', error);
+            atualizarIndicadorSync('error');
+            
+            if (typeof mostrarNotificacao === 'function') {
+                mostrarNotificacao('Erro ao salvar dados', 'error');
+            }
+            
+            throw error;
+        }
+    });
+}
+
+/**
+ * Função para registrar atividade no log - CORRIGIDA
+ */
+function registrarAtividade(tipo, detalhes) {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) return;
+    
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.warn('⚠️ Não foi possível registrar atividade - database indisponível');
+        return;
+    }
+    
+    const atividade = {
+        tipo: tipo,
+        usuario: usuarioAtual.email,
+        nomeUsuario: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
+        timestamp: obterServerValue().TIMESTAMP,
+        detalhes: detalhes,
+        versaoSistema: estadoSistema?.versaoSistema || '5.1'
+    };
+    
+    databaseInstance.ref('atividades').push(atividade).catch(error => {
+        console.warn('⚠️ Erro ao registrar atividade:', error);
+    });
+}
+
+/**
+ * Função para marcar que está editando algo - CORRIGIDA
+ */
+function marcarEditando(tipo, id) {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) return;
+    
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.warn('⚠️ Não foi possível marcar edição - database indisponível');
+        return;
+    }
+    
+    const ref = databaseInstance.ref(`editando/${tipo}_${id}`);
+    
+    ref.set({
+        usuario: usuarioAtual.email,
+        nomeUsuario: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
+        timestamp: obterServerValue().TIMESTAMP,
+        tipo: tipo,
+        itemId: id
+    }).catch(error => {
+        console.warn('⚠️ Erro ao marcar edição:', error);
+    });
+    
+    // Auto-remover após 30 segundos
+    setTimeout(() => {
+        ref.remove().catch(err => console.warn('Aviso: Erro ao remover marcação de edição:', err));
+    }, 30000);
+}
+
+/**
+ * Função para parar de marcar como editando - CORRIGIDA
+ */
+function pararEditando(tipo, id) {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual || !databaseInstance) return;
+    
+    databaseInstance.ref(`editando/${tipo}_${id}`).remove().catch(error => {
+        console.warn('⚠️ Erro ao parar edição:', error);
+    });
+}
+
+/**
+ * Função para verificar se tem mudanças locais não salvas
+ */
+function temMudancasLocais() {
+    // Por enquanto, sempre retorna false
+    // No futuro, implementar verificação de mudanças locais pendentes
+    return false;
+}
+
+/**
+ * Função para mostrar modal de conflito
+ */
+function mostrarConflito(dadosServidor) {
+    conflitosResolucao = dadosServidor;
+    
+    const modal = document.getElementById('conflictModal');
+    const mensagem = document.getElementById('conflictMessage');
+    
+    if (modal && mensagem) {
+        mensagem.textContent = `${dadosServidor.ultimoUsuario} fez alterações. O que deseja fazer?`;
+        modal.classList.add('active');
+        
+        console.log('⚠️ Conflito exibido para usuário');
+    }
+}
+
+/**
+ * Função para resolver conflito
+ */
+function resolverConflito(acao) {
+    const modal = document.getElementById('conflictModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    
+    if (acao === 'descartar' && conflitosResolucao) {
+        console.log('📥 Usando versão do servidor');
+        dados = conflitosResolucao;
+        
+        if (typeof renderizarDashboard === 'function') {
+            renderizarDashboard();
+        }
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Usando versão do servidor', 'info');
+        }
+    } else {
+        console.log('💾 Mantendo alterações locais');
         salvarDados();
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Mantendo suas alterações', 'info');
+        }
     }
-}
-
-/**
- * Limpa cache do sistema
- */
-function limparCache() {
-    const tamanhoAnterior = AppState.cache.size;
-    AppState.cache.clear();
-    console.log(`🗑️ Cache limpo: ${tamanhoAnterior} itens removidos`);
-}
-
-/**
- * ========== FUNÇÕES DE INTERFACE ==========
- */
-
-/**
- * Mostra tooltip
- */
-function mostrarTooltip(elemento) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'system-tooltip';
-    tooltip.textContent = elemento.getAttribute('data-tooltip');
-    tooltip.style.cssText = `
-        position: absolute;
-        background: #1f2937;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        z-index: 10000;
-        pointer-events: none;
-        white-space: nowrap;
-    `;
     
-    document.body.appendChild(tooltip);
-    
-    const rect = elemento.getBoundingClientRect();
-    tooltip.style.top = (rect.bottom + 5) + 'px';
-    tooltip.style.left = rect.left + 'px';
-    
-    elemento._tooltip = tooltip;
+    conflitosResolucao = null;
 }
 
 /**
- * Oculta tooltip
+ * Função para atualizar indicadores de edição
  */
-function ocultarTooltip(elemento) {
-    if (elemento._tooltip) {
-        elemento._tooltip.remove();
-        delete elemento._tooltip;
-    }
-}
-
-/**
- * Fecha todos os modais abertos
- */
-function fecharTodosModais() {
-    const modais = document.querySelectorAll('.modal.active');
-    modais.forEach(modal => {
-        if (typeof fecharModal === 'function') {
-            fecharModal(modal.id);
-        } else {
-            modal.classList.remove('active');
+function atualizarIndicadoresEdicao(editando) {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) return;
+    
+    // Remover indicadores existentes
+    document.querySelectorAll('.editing-indicator').forEach(el => el.remove());
+    
+    Object.entries(editando).forEach(([key, info]) => {
+        if (info.usuario !== usuarioAtual.email) {
+            const [tipo, id] = key.split('_');
+            
+            if (tipo === 'atividade') {
+                const elemento = document.querySelector(`[data-atividade-id="${id}"]`);
+                if (elemento && !elemento.querySelector('.editing-indicator')) {
+                    const indicator = document.createElement('span');
+                    indicator.className = 'editing-indicator';
+                    indicator.textContent = `${info.nomeUsuario} editando...`;
+                    elemento.appendChild(indicator);
+                }
+            }
         }
     });
 }
 
 /**
- * Atualiza layout responsivo
+ * Função para adicionar atividade ao log
  */
-function atualizarLayoutResponsivo() {
-    // Implementar ajustes de layout se necessário
-    const largura = window.innerWidth;
+function adicionarAtividadeLog(atividade) {
+    const container = document.getElementById('activityLogContent');
+    if (!container) return;
     
-    if (largura < 768) {
-        document.body.classList.add('mobile-layout');
-    } else {
-        document.body.classList.remove('mobile-layout');
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    
+    const tempo = new Date(atividade.timestamp).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    let mensagem = gerarMensagemAtividade(atividade);
+    
+    item.innerHTML = `
+        <div>${mensagem}</div>
+        <div class="time">${tempo}</div>
+    `;
+    
+    // Adicionar no topo
+    container.insertBefore(item, container.firstChild);
+    
+    // Limitar a 50 itens
+    while (container.children.length > 50) {
+        container.removeChild(container.lastChild);
+    }
+    
+    // Animação de entrada
+    item.classList.add('activity-item', 'novo');
+    setTimeout(() => {
+        item.classList.remove('novo');
+    }, 800);
+}
+
+/**
+ * Função para gerar mensagem de atividade
+ */
+function gerarMensagemAtividade(atividade) {
+    const nome = atividade.nomeUsuario || atividade.usuario.split('@')[0];
+    
+    switch(atividade.tipo) {
+        case 'atividade_criada':
+            return `${nome} criou "${atividade.detalhes.nome}"`;
+        case 'atividade_editada':
+            return `${nome} editou "${atividade.detalhes.nome}"`;
+        case 'status_alterado':
+            return `${nome} alterou status de "${atividade.detalhes.atividade}"`;
+        case 'evento_criado':
+            return `${nome} criou evento "${atividade.detalhes.titulo}"`;
+        case 'evento_editado':
+            return `${nome} editou evento "${atividade.detalhes.titulo}"`;
+        case 'tarefa_editada':
+            return `${nome} editou tarefa "${atividade.detalhes.tarefa}"`;
+        case 'status_automatico':
+            return `Sistema alterou status de "${atividade.detalhes.atividade}" automaticamente`;
+        case 'dados_salvos':
+            return `${nome} sincronizou dados`;
+        default:
+            return `${nome} fez uma alteração`;
     }
 }
 
 /**
- * ========== FUNÇÕES DE PERFORMANCE ==========
+ * Função para limpar listeners de sincronização - MELHORADA
  */
-
-/**
- * Pausa operações pesadas
- */
-function pausarOperacoesPesadas() {
-    console.log('⏸️ Pausando operações pesadas');
-    // Implementar lógica para pausar operações que consomem recursos
+function limparListenersSync() {
+    try {
+        Object.values(listenersDados).forEach(ref => {
+            if (ref && typeof ref.off === 'function') {
+                ref.off();
+            }
+        });
+        listenersDados = {};
+        
+        // Limpar presença
+        if (presenceRef) {
+            presenceRef.remove().catch(err => console.warn('Aviso ao remover presença:', err));
+            presenceRef = null;
+        }
+        
+        if (connectedRef) {
+            connectedRef.off();
+            connectedRef = null;
+        }
+        
+        // Limpar queue de rate limiting
+        SyncRateLimit.saveQueue.clear();
+        SyncRateLimit.isProcessing = false;
+        
+        console.log('🧹 Listeners de sincronização limpos');
+    } catch (error) {
+        console.error('❌ Erro ao limpar listeners:', error);
+    }
 }
 
 /**
- * Retoma operações pesadas
+ * Função para obter estatísticas de sincronização - MELHORADA
  */
-function retomarOperacoesPesadas() {
-    console.log('▶️ Retomando operações pesadas');
-    // Implementar lógica para retomar operações
+function obterEstatisticasSync() {
+    return {
+        ultimaSincronizacao: ultimaSincronizacao,
+        listenersAtivos: Object.keys(listenersDados).length,
+        presencaOnline: !!presenceRef,
+        conflitoPendente: !!conflitosResolucao,
+        versaoSistema: estadoSistema?.versaoSistema || '5.1',
+        databaseDisponivel: !!databaseInstance,
+        rateLimiting: {
+            ultimoSave: SyncRateLimit.lastSave,
+            queueSize: SyncRateLimit.saveQueue.size,
+            processando: SyncRateLimit.isProcessing
+        }
+    };
 }
 
 /**
- * ========== FUNÇÕES DE ERRO ==========
+ * Função para forçar sincronização - MELHORADA
  */
-
-/**
- * Trata erro na inicialização
- */
-function tratarErroInicializacao(error) {
-    console.error('💥 Falha crítica na inicialização:', error);
+function forcarSincronizacao() {
+    console.log('🔄 Forçando sincronização...');
+    atualizarIndicadorSync('syncing');
     
-    // Mostrar mensagem de erro para o usuário
-    const errorContainer = document.createElement('div');
-    errorContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #ef4444;
-        color: white;
-        padding: 20px;
-        border-radius: 8px;
-        text-align: center;
-        z-index: 99999;
-        max-width: 400px;
-    `;
+    // Bypassa rate limiting para força manual
+    const tempLastSave = SyncRateLimit.lastSave;
+    SyncRateLimit.lastSave = 0; // Reset para permitir save imediato
     
-    errorContainer.innerHTML = `
-        <h3>Erro de Inicialização</h3>
-        <p>Não foi possível carregar o sistema.</p>
-        <p style="font-size: 12px; margin-top: 10px;">
-            Erro: ${error.message}
-        </p>
-        <button onclick="location.reload()" style="
-            margin-top: 15px;
-            padding: 8px 16px;
-            background: white;
-            color: #ef4444;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        ">Tentar Novamente</button>
-    `;
-    
-    document.body.appendChild(errorContainer);
-}
-
-/**
- * ========== FUNÇÕES DE CLEANUP ==========
- */
-
-/**
- * Limpa recursos ao sair
- */
-function limparRecursos() {
-    console.log('🧹 Limpando recursos...');
-    
-    // Limpar intervalos
-    AppState.intervalos.forEach((intervalo, nome) => {
-        clearInterval(intervalo);
-        console.log(`🗑️ Intervalo ${nome} limpo`);
-    });
-    AppState.intervalos.clear();
-    
-    // Limpar cache
-    limparCache();
-    
-    // Limpar tooltips
-    document.querySelectorAll('.system-tooltip').forEach(tooltip => {
-        tooltip.remove();
+    salvarDados().finally(() => {
+        // Restaura o controle de rate limiting
+        SyncRateLimit.lastSave = tempLastSave;
     });
 }
 
 /**
- * ========== API PÚBLICA DO SISTEMA ==========
+ * Função para toggle do log de atividades
  */
-
-// Disponibilizar API pública
-window.Sistema = {
-    // Estado
-    estado: AppState,
-    config: SISTEMA_CONFIG,
-    
-    // Funções principais
-    inicializar: inicializarSistema,
-    verificarIntegridade: verificarIntegridadeSistema,
-    limparCache: limparCache,
-    limparRecursos: limparRecursos,
-    
-    // Utilitários
-    versao: () => SISTEMA_CONFIG.versao,
-    online: () => AppState.online,
-    autenticado: () => AppState.autenticado,
-    usuario: () => AppState.usuario
-};
-
-/**
- * ========== INICIALIZAÇÃO AUTOMÁTICA ==========
- */
-
-// Aguardar carregamento do DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarSistema);
-} else {
-    // DOM já carregado - inicializar imediatamente
-    inicializarSistema();
+function toggleActivityLog() {
+    const log = document.getElementById('activityLog');
+    if (log) {
+        log.classList.toggle('active');
+    }
 }
 
-// Limpar recursos ao sair
-window.addEventListener('beforeunload', limparRecursos);
+/**
+ * Função para debug do sistema de sincronização - MELHORADA
+ */
+function debugSync() {
+    console.group('🔄 DEBUG SINCRONIZAÇÃO');
+    console.log('Listeners:', listenersDados);
+    console.log('Presença:', !!presenceRef);
+    console.log('Conectado:', !!connectedRef);
+    console.log('Database:', !!databaseInstance);
+    console.log('Última sync:', ultimaSincronizacao);
+    console.log('Conflitos:', !!conflitosResolucao);
+    console.log('Rate Limiting:', {
+        canSave: SyncRateLimit.canSave(),
+        queueSize: SyncRateLimit.saveQueue.size,
+        isProcessing: SyncRateLimit.isProcessing
+    });
+    console.log('Estatísticas:', obterEstatisticasSync());
+    console.groupEnd();
+}
 
-console.log('📁 app.js carregado - Sistema pronto para inicialização');
-
-/* ==========================================================================
-   FIM DO APP.JS - Sistema de Gestão v5.1
-   ========================================================================== */ 
+// Exportar para uso global (compatibilidade) com função de database
+if (typeof window !== 'undefined') {
+    window.obterDatabaseCompativel = obterDatabaseCompativel;
+    window.configurarPresenca = configurarPresenca;
+    window.configurarSincronizacao = configurarSincronizacao;
+    window.atualizarIndicadorSync = atualizarIndicadorSync;
+    window.salvarDados = salvarDados;
+    window.registrarAtividade = registrarAtividade;
+    window.marcarEditando = marcarEditando;
+    window.pararEditando = pararEditando;
+    window.mostrarConflito = mostrarConflito;
+    window.resolverConflito = resolverConflito;
+    window.atualizarIndicadoresEdicao = atualizarIndicadoresEdicao;
+    window.adicionarAtividadeLog = adicionarAtividadeLog;
+    window.limparListenersSync = limparListenersSync;
+    window.obterEstatisticasSync = obterEstatisticasSync;
+    window.forcarSincronizacao = forcarSincronizacao;
+    window.toggleActivityLog = toggleActivityLog;
+    window.debugSync = debugSync;
+    
+    // Compatibilidade com nomes antigos
+    window.listenersDados = listenersDados;
+    window.presenceRef = presenceRef;
+    
+    console.log('🔄 Módulo de sincronização CORRIGIDO carregado');
+}

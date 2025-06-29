@@ -1,6 +1,90 @@
- /* ==========================================================================
-   SISTEMA DE SINCRONIZAÇÃO - Sistema de Gestão v5.1
+/* ==========================================================================
+   SISTEMA DE SINCRONIZAÇÃO - Sistema de Gestão v5.1 - CORRIGIDO
    ========================================================================== */
+
+/**
+ * CORREÇÃO CRÍTICA: Imports Firebase Database adequados
+ * Compatibilidade Firebase v8/v9+ com rate limiting
+ */
+
+/**
+ * Função compatível para obter Database (Firebase v8/v9)
+ */
+function obterDatabaseCompativel() {
+    // Firebase v9+ (modular)
+    if (typeof getDatabase !== 'undefined') {
+        return getDatabase();
+    }
+    // Firebase v8 (namespaced)
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        return firebase.database();
+    }
+    
+    throw new Error('Firebase Database não disponível. Verifique configuração.');
+}
+
+/**
+ * Função compatível para ServerValue
+ */
+function obterServerValue() {
+    // Firebase v9+
+    if (typeof serverTimestamp !== 'undefined') {
+        return { TIMESTAMP: serverTimestamp() };
+    }
+    // Firebase v8
+    if (typeof firebase !== 'undefined' && firebase.database?.ServerValue) {
+        return firebase.database.ServerValue;
+    }
+    
+    return { TIMESTAMP: Date.now() };
+}
+
+/**
+ * Rate Limiting Inteligente para sincronização
+ */
+const SyncRateLimit = {
+    lastSave: 0,
+    minInterval: 2000, // 2 segundos mínimo entre saves
+    saveQueue: new Set(),
+    isProcessing: false,
+    
+    canSave() {
+        const now = Date.now();
+        return (now - this.lastSave) >= this.minInterval;
+    },
+    
+    async queueSave(operation) {
+        this.saveQueue.add(operation);
+        if (!this.isProcessing) {
+            await this.processQueue();
+        }
+    },
+    
+    async processQueue() {
+        if (this.saveQueue.size === 0) return;
+        
+        this.isProcessing = true;
+        
+        if (this.canSave()) {
+            const operations = Array.from(this.saveQueue);
+            this.saveQueue.clear();
+            
+            try {
+                // Processar todas as operações em batch
+                await Promise.all(operations.map(op => op()));
+                this.lastSave = Date.now();
+            } catch (error) {
+                console.error('❌ Erro no batch de sincronização:', error);
+            }
+        } else {
+            // Aguardar intervalo mínimo
+            const waitTime = this.minInterval - (Date.now() - this.lastSave);
+            setTimeout(() => this.processQueue(), waitTime);
+        }
+        
+        this.isProcessing = false;
+    }
+};
 
 /**
  * Variáveis globais de sincronização
@@ -11,9 +95,24 @@ let connectedRef = null;
 let syncTimeout = null;
 let conflitosResolucao = null;
 let ultimaSincronizacao = null;
+let databaseInstance = null;
 
 /**
- * Função para configurar sistema de presença online
+ * Inicializar database instance
+ */
+function inicializarDatabase() {
+    try {
+        databaseInstance = obterDatabaseCompativel();
+        console.log('✅ Database instance inicializada');
+        return true;
+    } catch (error) {
+        console.error('❌ Erro ao inicializar database:', error);
+        return false;
+    }
+}
+
+/**
+ * Função para configurar sistema de presença online - CORRIGIDA
  */
 function configurarPresenca() {
     const usuarioAtual = obterUsuarioAtual();
@@ -22,21 +121,25 @@ function configurarPresenca() {
         return;
     }
     
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Não foi possível configurar presença - database indisponível');
+        return;
+    }
+    
     console.log('👥 Configurando presença online para:', usuarioAtual.email);
     
-    const database = getDatabase();
     const uid = usuarioAtual.uid;
     
-    presenceRef = database.ref(`presence/${uid}`);
-    connectedRef = database.ref('.info/connected');
+    presenceRef = databaseInstance.ref(`presence/${uid}`);
+    connectedRef = databaseInstance.ref('.info/connected');
     
     const userStatus = {
         uid: uid,
         email: usuarioAtual.email,
         nome: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
         online: true,
-        ultimaAtividade: firebase.database.ServerValue.TIMESTAMP,
-        versaoSistema: VERSAO_SISTEMA
+        ultimaAtividade: obterServerValue().TIMESTAMP,
+        versaoSistema: estadoSistema?.versaoSistema || '5.1'
     };
     
     // Configurar presença
@@ -51,7 +154,7 @@ function configurarPresenca() {
     });
     
     // Monitorar usuários online
-    database.ref('presence').on('value', (snapshot) => {
+    databaseInstance.ref('presence').on('value', (snapshot) => {
         const usuarios = snapshot.val() || {};
         atualizarUsuariosOnline(usuarios);
     });
@@ -91,15 +194,18 @@ function atualizarUsuariosOnline(usuarios) {
 }
 
 /**
- * Função para configurar sincronização de dados
+ * Função para configurar sincronização de dados - CORRIGIDA
  */
 function configurarSincronizacao() {
     console.log('🔄 Configurando sincronização de dados...');
     
-    const database = getDatabase();
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Não foi possível configurar sincronização - database indisponível');
+        return;
+    }
     
     // Listener principal dos dados
-    listenersDados.dados = database.ref('dados').on('value', (snapshot) => {
+    listenersDados.dados = databaseInstance.ref('dados').on('value', (snapshot) => {
         const dadosServidor = snapshot.val();
         
         if (dadosServidor) {
@@ -107,13 +213,15 @@ function configurarSincronizacao() {
             processarDadosRecebidos(dadosServidor);
         } else {
             console.log('📝 Nenhum dado no servidor, inicializando...');
-            dados = inicializarDados();
-            salvarDados();
+            if (typeof inicializarDados === 'function') {
+                dados = inicializarDados();
+                salvarDados();
+            }
         }
     });
     
     // Listener de atividades (log)
-    listenersDados.atividades = database.ref('atividades')
+    listenersDados.atividades = databaseInstance.ref('atividades')
         .orderByChild('timestamp')
         .limitToLast(50)
         .on('child_added', (snapshot) => {
@@ -126,7 +234,7 @@ function configurarSincronizacao() {
         });
     
     // Listener de status de edição
-    listenersDados.editando = database.ref('editando').on('value', (snapshot) => {
+    listenersDados.editando = databaseInstance.ref('editando').on('value', (snapshot) => {
         const editando = snapshot.val() || {};
         atualizarIndicadoresEdicao(editando);
     });
@@ -135,6 +243,29 @@ function configurarSincronizacao() {
     configurarMonitoramentoConexao();
     
     console.log('✅ Sincronização configurada');
+}
+
+/**
+ * Configurar monitoramento de conexão
+ */
+function configurarMonitoramentoConexao() {
+    if (!databaseInstance) return;
+    
+    databaseInstance.ref('.info/connected').on('value', (snapshot) => {
+        const connected = snapshot.val();
+        
+        if (estadoSistema) {
+            estadoSistema.online = connected;
+        }
+        
+        if (connected) {
+            console.log('🌐 Conexão Firebase restaurada');
+            atualizarIndicadorSync('synced');
+        } else {
+            console.log('🔴 Conexão Firebase perdida');
+            atualizarIndicadorSync('offline');
+        }
+    });
 }
 
 /**
@@ -153,13 +284,21 @@ function processarDadosRecebidos(dadosServidor) {
         } else {
             console.log('🔄 Atualizando com dados do servidor');
             dados = dadosServidor;
-            renderizarDashboard();
+            
+            if (typeof renderizarDashboard === 'function') {
+                renderizarDashboard();
+            }
+            
             atualizarIndicadorSync('synced');
             ultimaSincronizacao = new Date();
         }
     } else {
         dados = dadosServidor;
-        renderizarDashboard();
+        
+        if (typeof renderizarDashboard === 'function') {
+            renderizarDashboard();
+        }
+        
         atualizarIndicadorSync('synced');
         ultimaSincronizacao = new Date();
     }
@@ -211,24 +350,31 @@ function atualizarIndicadorSync(status) {
 }
 
 /**
- * Função principal para salvar dados no Firebase
+ * Função principal para salvar dados no Firebase - CORRIGIDA COM RATE LIMITING
  */
 function salvarDados() {
     const usuarioAtual = obterUsuarioAtual();
     if (!usuarioAtual) {
         console.warn('⚠️ Usuário não logado para salvar dados');
-        return;
+        return Promise.resolve();
     }
     
-    try {
-        atualizarIndicadorSync('syncing');
-        
-        dados.ultimaAtualizacao = new Date().toISOString();
-        dados.ultimoUsuario = usuarioAtual.email;
-        dados.versaoSistema = VERSAO_SISTEMA;
-        
-        const database = getDatabase();
-        database.ref('dados').set(dados).then(() => {
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.error('❌ Database não disponível para salvar');
+        return Promise.reject(new Error('Database indisponível'));
+    }
+    
+    // Usar rate limiting
+    return SyncRateLimit.queueSave(async () => {
+        try {
+            atualizarIndicadorSync('syncing');
+            
+            dados.ultimaAtualizacao = new Date().toISOString();
+            dados.ultimoUsuario = usuarioAtual.email;
+            dados.versaoSistema = estadoSistema?.versaoSistema || '5.1';
+            
+            await databaseInstance.ref('dados').set(dados);
+            
             console.log('✅ Dados salvos no Firebase');
             atualizarIndicadorSync('synced');
             ultimaSincronizacao = new Date();
@@ -236,56 +382,71 @@ function salvarDados() {
             registrarAtividade('dados_salvos', {
                 usuario: usuarioAtual.email,
                 timestamp: dados.ultimaAtualizacao,
-                versao: VERSAO_SISTEMA
+                versao: dados.versaoSistema
             });
-        }).catch((error) => {
+            
+            return true;
+        } catch (error) {
             console.error('❌ Erro ao salvar:', error);
             atualizarIndicadorSync('error');
-            mostrarNotificacao(MENSAGENS.ERRO.ERRO_SALVAMENTO, 'error');
-        });
-    } catch (error) {
-        console.error('❌ Erro ao salvar dados:', error);
-        atualizarIndicadorSync('error');
-        mostrarNotificacao(MENSAGENS.ERRO.ERRO_SALVAMENTO, 'error');
-    }
+            
+            if (typeof mostrarNotificacao === 'function') {
+                mostrarNotificacao('Erro ao salvar dados', 'error');
+            }
+            
+            throw error;
+        }
+    });
 }
 
 /**
- * Função para registrar atividade no log
+ * Função para registrar atividade no log - CORRIGIDA
  */
 function registrarAtividade(tipo, detalhes) {
     const usuarioAtual = obterUsuarioAtual();
     if (!usuarioAtual) return;
     
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.warn('⚠️ Não foi possível registrar atividade - database indisponível');
+        return;
+    }
+    
     const atividade = {
         tipo: tipo,
         usuario: usuarioAtual.email,
         nomeUsuario: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        timestamp: obterServerValue().TIMESTAMP,
         detalhes: detalhes,
-        versaoSistema: VERSAO_SISTEMA
+        versaoSistema: estadoSistema?.versaoSistema || '5.1'
     };
     
-    const database = getDatabase();
-    database.ref('atividades').push(atividade);
+    databaseInstance.ref('atividades').push(atividade).catch(error => {
+        console.warn('⚠️ Erro ao registrar atividade:', error);
+    });
 }
 
 /**
- * Função para marcar que está editando algo
+ * Função para marcar que está editando algo - CORRIGIDA
  */
 function marcarEditando(tipo, id) {
     const usuarioAtual = obterUsuarioAtual();
     if (!usuarioAtual) return;
     
-    const database = getDatabase();
-    const ref = database.ref(`editando/${tipo}_${id}`);
+    if (!databaseInstance && !inicializarDatabase()) {
+        console.warn('⚠️ Não foi possível marcar edição - database indisponível');
+        return;
+    }
+    
+    const ref = databaseInstance.ref(`editando/${tipo}_${id}`);
     
     ref.set({
         usuario: usuarioAtual.email,
         nomeUsuario: usuarioAtual.displayName || usuarioAtual.email.split('@')[0],
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        timestamp: obterServerValue().TIMESTAMP,
         tipo: tipo,
         itemId: id
+    }).catch(error => {
+        console.warn('⚠️ Erro ao marcar edição:', error);
     });
     
     // Auto-remover após 30 segundos
@@ -295,14 +456,15 @@ function marcarEditando(tipo, id) {
 }
 
 /**
- * Função para parar de marcar como editando
+ * Função para parar de marcar como editando - CORRIGIDA
  */
 function pararEditando(tipo, id) {
     const usuarioAtual = obterUsuarioAtual();
-    if (!usuarioAtual) return;
+    if (!usuarioAtual || !databaseInstance) return;
     
-    const database = getDatabase();
-    database.ref(`editando/${tipo}_${id}`).remove();
+    databaseInstance.ref(`editando/${tipo}_${id}`).remove().catch(error => {
+        console.warn('⚠️ Erro ao parar edição:', error);
+    });
 }
 
 /**
@@ -343,12 +505,21 @@ function resolverConflito(acao) {
     if (acao === 'descartar' && conflitosResolucao) {
         console.log('📥 Usando versão do servidor');
         dados = conflitosResolucao;
-        renderizarDashboard();
-        mostrarNotificacao('Usando versão do servidor', 'info');
+        
+        if (typeof renderizarDashboard === 'function') {
+            renderizarDashboard();
+        }
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Usando versão do servidor', 'info');
+        }
     } else {
         console.log('💾 Mantendo alterações locais');
         salvarDados();
-        mostrarNotificacao('Mantendo suas alterações', 'info');
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Mantendo suas alterações', 'info');
+        }
     }
     
     conflitosResolucao = null;
@@ -447,7 +618,7 @@ function gerarMensagemAtividade(atividade) {
 }
 
 /**
- * Função para limpar listeners de sincronização
+ * Função para limpar listeners de sincronização - MELHORADA
  */
 function limparListenersSync() {
     try {
@@ -469,6 +640,10 @@ function limparListenersSync() {
             connectedRef = null;
         }
         
+        // Limpar queue de rate limiting
+        SyncRateLimit.saveQueue.clear();
+        SyncRateLimit.isProcessing = false;
+        
         console.log('🧹 Listeners de sincronização limpos');
     } catch (error) {
         console.error('❌ Erro ao limpar listeners:', error);
@@ -476,7 +651,7 @@ function limparListenersSync() {
 }
 
 /**
- * Função para obter estatísticas de sincronização
+ * Função para obter estatísticas de sincronização - MELHORADA
  */
 function obterEstatisticasSync() {
     return {
@@ -484,20 +659,31 @@ function obterEstatisticasSync() {
         listenersAtivos: Object.keys(listenersDados).length,
         presencaOnline: !!presenceRef,
         conflitoPendente: !!conflitosResolucao,
-        versaoSistema: VERSAO_SISTEMA
+        versaoSistema: estadoSistema?.versaoSistema || '5.1',
+        databaseDisponivel: !!databaseInstance,
+        rateLimiting: {
+            ultimoSave: SyncRateLimit.lastSave,
+            queueSize: SyncRateLimit.saveQueue.size,
+            processando: SyncRateLimit.isProcessing
+        }
     };
 }
 
 /**
- * Função para forçar sincronização
+ * Função para forçar sincronização - MELHORADA
  */
 function forcarSincronizacao() {
     console.log('🔄 Forçando sincronização...');
     atualizarIndicadorSync('syncing');
     
-    setTimeout(() => {
-        salvarDados();
-    }, 500);
+    // Bypassa rate limiting para força manual
+    const tempLastSave = SyncRateLimit.lastSave;
+    SyncRateLimit.lastSave = 0; // Reset para permitir save imediato
+    
+    salvarDados().finally(() => {
+        // Restaura o controle de rate limiting
+        SyncRateLimit.lastSave = tempLastSave;
+    });
 }
 
 /**
@@ -511,21 +697,28 @@ function toggleActivityLog() {
 }
 
 /**
- * Função para debug do sistema de sincronização
+ * Função para debug do sistema de sincronização - MELHORADA
  */
 function debugSync() {
     console.group('🔄 DEBUG SINCRONIZAÇÃO');
     console.log('Listeners:', listenersDados);
     console.log('Presença:', !!presenceRef);
     console.log('Conectado:', !!connectedRef);
+    console.log('Database:', !!databaseInstance);
     console.log('Última sync:', ultimaSincronizacao);
     console.log('Conflitos:', !!conflitosResolucao);
+    console.log('Rate Limiting:', {
+        canSave: SyncRateLimit.canSave(),
+        queueSize: SyncRateLimit.saveQueue.size,
+        isProcessing: SyncRateLimit.isProcessing
+    });
     console.log('Estatísticas:', obterEstatisticasSync());
     console.groupEnd();
 }
 
-// Exportar para uso global (compatibilidade)
+// Exportar para uso global (compatibilidade) com função de database
 if (typeof window !== 'undefined') {
+    window.obterDatabaseCompativel = obterDatabaseCompativel;
     window.configurarPresenca = configurarPresenca;
     window.configurarSincronizacao = configurarSincronizacao;
     window.atualizarIndicadorSync = atualizarIndicadorSync;
@@ -547,5 +740,5 @@ if (typeof window !== 'undefined') {
     window.listenersDados = listenersDados;
     window.presenceRef = presenceRef;
     
-    console.log('🔄 Módulo de sincronização carregado');
+    console.log('🔄 Módulo de sincronização CORRIGIDO carregado');
 }

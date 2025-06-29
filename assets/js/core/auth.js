@@ -1,12 +1,75 @@
 /* ==========================================================================
-   SISTEMA DE AUTENTICAÇÃO - Sistema de Gestão v5.1
+   SISTEMA DE AUTENTICAÇÃO - Sistema de Gestão v5.1 - CORRIGIDO
    ========================================================================== */
+
+/**
+ * CORREÇÃO CRÍTICA: Imports Firebase adequados
+ * Firebase v9+ modular ou v8 namespaced compatível
+ */
+
+/**
+ * Função compatível para obter Auth (Firebase v8/v9)
+ */
+function obterFirebaseAuth() {
+    // Firebase v9+ (modular)
+    if (typeof getAuth !== 'undefined') {
+        return getAuth();
+    }
+    // Firebase v8 (namespaced) 
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        return firebase.auth();
+    }
+    
+    throw new Error('Firebase Auth não disponível. Verifique configuração.');
+}
+
+/**
+ * Função compatível para métodos de autenticação
+ */
+function obterMetodosAuth() {
+    const auth = obterFirebaseAuth();
+    
+    // Firebase v9+
+    if (typeof signInWithEmailAndPassword !== 'undefined') {
+        return {
+            signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
+            signUp: (email, password) => createUserWithEmailAndPassword(auth, email, password),
+            signOut: () => signOut(auth),
+            onAuthStateChanged: (callback) => onAuthStateChanged(auth, callback),
+            updateProfile: (user, profile) => updateProfile(user, profile)
+        };
+    }
+    
+    // Firebase v8 (fallback)
+    return {
+        signIn: (email, password) => auth.signInWithEmailAndPassword(email, password),
+        signUp: (email, password) => auth.createUserWithEmailAndPassword(email, password), 
+        signOut: () => auth.signOut(),
+        onAuthStateChanged: (callback) => auth.onAuthStateChanged(callback),
+        updateProfile: (user, profile) => user.updateProfile(profile)
+    };
+}
 
 /**
  * Variáveis globais de autenticação
  */
 let usuarioAtual = null;
 let authStateChangedCallback = null;
+let metodosAuth = null;
+
+/**
+ * Inicializar métodos de autenticação
+ */
+function inicializarMetodosAuth() {
+    try {
+        metodosAuth = obterMetodosAuth();
+        console.log('✅ Métodos de autenticação inicializados');
+        return true;
+    } catch (error) {
+        console.error('❌ Erro ao inicializar métodos auth:', error);
+        return false;
+    }
+}
 
 /**
  * Função para mostrar a tela de login
@@ -57,9 +120,17 @@ function limparFormularioLogin() {
 }
 
 /**
- * Função principal de login
+ * Função principal de login - CORRIGIDA
  */
 function fazerLogin() {
+    // Garantir que métodos estão inicializados
+    if (!metodosAuth) {
+        if (!inicializarMetodosAuth()) {
+            mostrarNotificacao('Erro na configuração do sistema', 'error');
+            return;
+        }
+    }
+    
     const email = document.getElementById('loginEmail')?.value;
     const senha = document.getElementById('loginPassword')?.value;
     
@@ -74,14 +145,13 @@ function fazerLogin() {
     mostrarLoadingLogin(true);
     mostrarNotificacao('Entrando...', 'info');
     
-    // Tentar fazer login no Firebase
-    const auth = getAuth();
-    auth.signInWithEmailAndPassword(email, senha)
+    // Tentar fazer login no Firebase - MÉTODO CORRIGIDO
+    metodosAuth.signIn(email, senha)
         .then((userCredential) => {
             usuarioAtual = userCredential.user;
             console.log('✅ Login realizado com sucesso:', usuarioAtual.email);
             
-            mostrarNotificacao(MENSAGENS.SUCESSO.LOGIN_SUCESSO, 'success');
+            mostrarNotificacao('Login realizado com sucesso!', 'success');
             
             // Inicializar sistema será chamado pelo authStateChanged
         })
@@ -95,7 +165,7 @@ function fazerLogin() {
 }
 
 /**
- * Função para validar campos de login
+ * Função para validar campos de login - MELHORADA
  */
 function validarCamposLogin(email, senha) {
     let valido = true;
@@ -103,9 +173,14 @@ function validarCamposLogin(email, senha) {
     const emailInput = document.getElementById('loginEmail');
     const senhaInput = document.getElementById('loginPassword');
     
-    // Validar email
+    // Validar email com regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !email.trim()) {
         emailInput?.classList.add('input-error');
+        valido = false;
+    } else if (!emailRegex.test(email)) {
+        emailInput?.classList.add('input-error');
+        mostrarNotificacao('Email inválido!', 'error');
         valido = false;
     } else {
         emailInput?.classList.remove('input-error');
@@ -115,12 +190,16 @@ function validarCamposLogin(email, senha) {
     if (!senha || !senha.trim()) {
         senhaInput?.classList.add('input-error');
         valido = false;
+    } else if (senha.length < 6) {
+        senhaInput?.classList.add('input-error');
+        mostrarNotificacao('Senha deve ter pelo menos 6 caracteres!', 'error');
+        valido = false;
     } else {
         senhaInput?.classList.remove('input-error');
     }
     
-    if (!valido) {
-        mostrarNotificacao(MENSAGENS.ERRO.CAMPOS_OBRIGATORIOS, 'error');
+    if (!valido && !emailRegex.test(email) && senha.length >= 6) {
+        mostrarNotificacao('Preencha todos os campos obrigatórios!', 'error');
     }
     
     return valido;
@@ -144,17 +223,17 @@ function mostrarLoadingLogin(mostrar) {
 }
 
 /**
- * Função para tratar erros de login
+ * Função para tratar erros de login - MELHORADA
  */
 function tratarErroLogin(error) {
-    let mensagem = MENSAGENS.ERRO.ERRO_LOGIN;
+    let mensagem = 'Erro ao fazer login';
     
     switch (error.code) {
         case 'auth/user-not-found':
-            mensagem = MENSAGENS.ERRO.USUARIO_NAO_ENCONTRADO;
+            mensagem = 'Usuário não encontrado!';
             break;
         case 'auth/wrong-password':
-            mensagem = MENSAGENS.ERRO.SENHA_INCORRETA;
+            mensagem = 'Senha incorreta!';
             break;
         case 'auth/invalid-email':
             mensagem = 'Email inválido!';
@@ -164,6 +243,12 @@ function tratarErroLogin(error) {
             break;
         case 'auth/too-many-requests':
             mensagem = 'Muitas tentativas. Tente novamente mais tarde.';
+            break;
+        case 'auth/invalid-credential':
+            mensagem = 'Credenciais inválidas!';
+            break;
+        case 'auth/network-request-failed':
+            mensagem = 'Erro de conexão. Verifique sua internet.';
             break;
         default:
             mensagem = `Erro ao fazer login: ${error.message}`;
@@ -182,29 +267,50 @@ function tratarErroLogin(error) {
 }
 
 /**
- * Função para mostrar o registro de novo usuário
+ * Função para mostrar o registro de novo usuário - MELHORADA
  */
 function mostrarRegistro() {
+    // TODO: Implementar modal responsivo (próxima prioridade)
+    // Por enquanto mantém prompts mas com validação melhorada
+    
     const email = prompt('Digite seu email:');
-    if (!email || !email.trim()) return;
+    if (!email || !email.trim()) {
+        mostrarNotificacao('Email é obrigatório!', 'error');
+        return;
+    }
+    
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        mostrarNotificacao('Email inválido!', 'error');
+        return;
+    }
     
     const senha = prompt('Digite uma senha (mínimo 6 caracteres):');
-    if (!senha || senha.length < VALIDACAO.MIN_SENHA) {
-        mostrarNotificacao(MENSAGENS.ERRO.ERRO_SENHA, 'error');
+    if (!senha || senha.length < 6) {
+        mostrarNotificacao('Senha deve ter pelo menos 6 caracteres!', 'error');
         return;
     }
     
     const nome = prompt('Digite seu nome:');
-    if (!nome || !nome.trim()) return;
+    if (!nome || !nome.trim()) {
+        mostrarNotificacao('Nome é obrigatório!', 'error');
+        return;
+    }
     
     console.log('📝 Criando nova conta para:', email);
     mostrarNotificacao('Criando conta...', 'info');
     
-    const auth = getAuth();
-    auth.createUserWithEmailAndPassword(email, senha)
+    // Garantir métodos inicializados
+    if (!metodosAuth) {
+        inicializarMetodosAuth();
+    }
+    
+    // Criar conta - MÉTODO CORRIGIDO
+    metodosAuth.signUp(email, senha)
         .then((userCredential) => {
-            // Atualizar perfil com nome
-            return userCredential.user.updateProfile({
+            // Atualizar perfil com nome - MÉTODO CORRIGIDO
+            return metodosAuth.updateProfile(userCredential.user, {
                 displayName: nome
             });
         })
@@ -236,10 +342,10 @@ function mostrarRegistro() {
 }
 
 /**
- * Função para fazer logout
+ * Função para fazer logout - CORRIGIDA
  */
 function fazerLogout() {
-    if (!confirm(MENSAGENS.CONFIRMACAO.LOGOUT)) {
+    if (!confirm('Tem certeza que deseja sair?')) {
         return;
     }
     
@@ -261,12 +367,16 @@ function fazerLogout() {
         intervaloPrazos = null;
     }
     
-    // Fazer logout no Firebase
-    const auth = getAuth();
-    auth.signOut()
+    // Garantir métodos inicializados
+    if (!metodosAuth) {
+        inicializarMetodosAuth();
+    }
+    
+    // Fazer logout no Firebase - MÉTODO CORRIGIDO
+    metodosAuth.signOut()
         .then(() => {
             console.log('✅ Logout realizado com sucesso');
-            mostrarNotificacao(MENSAGENS.SUCESSO.LOGOUT_SUCESSO, 'success');
+            mostrarNotificacao('Logout realizado com sucesso!', 'success');
             mostrarLogin();
             
             // Limpar dados locais
@@ -310,13 +420,6 @@ function limparListenersAuth() {
  */
 function limparDadosLocais() {
     try {
-        // Limpar localStorage se necessário
-        Object.values(STORAGE_KEYS).forEach(key => {
-            if (localStorage.getItem(key)) {
-                localStorage.removeItem(key);
-            }
-        });
-        
         // Limpar variáveis globais
         if (typeof dados !== 'undefined') {
             dados = null;
@@ -334,7 +437,7 @@ function limparDadosLocais() {
                 editandoTarefa: null,
                 pessoasSelecionadas: new Set(),
                 tarefasVinculadas: new Map(),
-                versaoSistema: VERSAO_SISTEMA,
+                versaoSistema: '5.1',
                 usuarioEmail: null,
                 usuarioNome: null,
                 alertasPrazosExibidos: new Set()
@@ -348,13 +451,21 @@ function limparDadosLocais() {
 }
 
 /**
- * Função para configurar listener de mudança de estado de autenticação
+ * Função para configurar listener de mudança de estado de autenticação - CORRIGIDA
  */
 function configurarAuthStateListener(callback) {
-    const auth = getAuth();
+    // Garantir métodos inicializados
+    if (!metodosAuth) {
+        if (!inicializarMetodosAuth()) {
+            console.error('❌ Não foi possível configurar Auth State Listener');
+            return;
+        }
+    }
+    
     authStateChangedCallback = callback;
     
-    auth.onAuthStateChanged((user) => {
+    // Usar método corrigido
+    metodosAuth.onAuthStateChanged((user) => {
         console.log('🔄 Estado de autenticação mudou:', user ? user.email : 'Nenhum usuário');
         
         if (user) {
@@ -402,14 +513,19 @@ function obterInfoUsuario() {
 }
 
 /**
- * Função para atualizar perfil do usuário
+ * Função para atualizar perfil do usuário - CORRIGIDA
  */
 function atualizarPerfilUsuario(dadosAtualizacao) {
     if (!usuarioAtual) {
         throw new Error('Usuário não está logado');
     }
     
-    return usuarioAtual.updateProfile(dadosAtualizacao)
+    // Garantir métodos inicializados
+    if (!metodosAuth) {
+        inicializarMetodosAuth();
+    }
+    
+    return metodosAuth.updateProfile(usuarioAtual, dadosAtualizacao)
         .then(() => {
             console.log('✅ Perfil atualizado com sucesso');
             mostrarNotificacao('Perfil atualizado!', 'success');
@@ -435,14 +551,19 @@ function verificarPermissao(permissao) {
  */
 function obterUsuariosOnline() {
     return new Promise((resolve, reject) => {
-        const database = getDatabase();
-        database.ref('presence').once('value')
-            .then((snapshot) => {
-                const usuarios = snapshot.val() || {};
-                const usuariosOnline = Object.values(usuarios).filter(u => u.online);
-                resolve(usuariosOnline);
-            })
-            .catch(reject);
+        // Usar função compatível do sync.js
+        if (typeof obterDatabaseCompativel === 'function') {
+            const database = obterDatabaseCompativel();
+            database.ref('presence').once('value')
+                .then((snapshot) => {
+                    const usuarios = snapshot.val() || {};
+                    const usuariosOnline = Object.values(usuarios).filter(u => u.online);
+                    resolve(usuariosOnline);
+                })
+                .catch(reject);
+        } else {
+            reject(new Error('Database não disponível'));
+        }
     });
 }
 
@@ -455,14 +576,22 @@ function debugAuth() {
     console.log('Logado:', usuarioLogado());
     console.log('Info usuário:', obterInfoUsuario());
     console.log('Auth callback:', !!authStateChangedCallback);
+    console.log('Métodos Auth:', !!metodosAuth);
+    console.log('Firebase disponível:', typeof firebase !== 'undefined');
     console.groupEnd();
 }
 
 /**
- * Função para inicializar sistema de autenticação
+ * Função para inicializar sistema de autenticação - MELHORADA
  */
 function inicializarAuth() {
     console.log('🔐 Inicializando sistema de autenticação...');
+    
+    // Primeiro: inicializar métodos
+    if (!inicializarMetodosAuth()) {
+        console.error('❌ Falha ao inicializar métodos de autenticação');
+        return false;
+    }
     
     // Adicionar listeners de eventos do formulário
     adicionarListenersFormulario();
@@ -471,6 +600,7 @@ function inicializarAuth() {
     configurarTeclasAtalho();
     
     console.log('✅ Sistema de autenticação inicializado');
+    return true;
 }
 
 /**
@@ -530,5 +660,5 @@ if (typeof window !== 'undefined') {
     window.debugAuth = debugAuth;
     window.inicializarAuth = inicializarAuth;
     
-    console.log('🔐 Módulo de autenticação carregado');
-} 
+    console.log('🔐 Módulo de autenticação CORRIGIDO carregado');
+}

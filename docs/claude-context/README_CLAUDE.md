@@ -170,3 +170,135 @@ git commit -m "[TIPO]: [TITULO]" \
 **Arquivos**: init.js, state.js, auth.js, sync.js, app.js
 **Foco**: Inicializacao, gerenciamento estado, performance
 **Output**: Analise detalhada + plano de melhorias
+
+## 🔄 ATUALIZAÇÃO AUTOMÁTICA DE CONTEXTO
+
+### **IMPORTANTE: Claude DEVE atualizar contexto automaticamente!**
+
+### **🚨 REGRA OBRIGATÓRIA:**
+**A CADA descoberta/mudança importante, Claude DEVE:**
+
+1. **Criar micro-update IMEDIATO** (30s)
+2. **Atualizar arquivo correspondente** 
+3. **Salvar progresso automaticamente**
+4. **Gerar commit automático**
+
+---
+
+## 📝 PROCESSO AUTOMÁTICO OBRIGATÓRIO
+
+### **Durante ANÁLISE (Claude deve fazer automaticamente):**
+
+#### **A cada PROBLEMA identificado:**
+`markdown
+### 🔧 [HORA] - Problema identificado: [nome]
+**Arquivo**: [arquivo:linha]
+**Severidade**: [ALTA/MÉDIA/BAIXA] 
+**Descrição**: [descrição do problema]
+**Impacto**: [como afeta o sistema]
+**Solução proposta**: [como corrigir]
+`
+
+#### **A cada MELHORIA identificada:**
+`markdown
+### 🚀 [HORA] - Melhoria identificada: [nome]
+**Arquivo**: [arquivo:linha]
+**Tipo**: [Performance/Código/UX/Segurança]
+**Benefício**: [o que melhora]
+**Esforço**: [tempo estimado]
+**Prioridade**: [ALTA/MÉDIA/BAIXA]
+`
+
+### **AO FINAL da ANÁLISE (Claude deve fazer automaticamente):**
+
+#### **1. Salvar ANÁLISE COMPLETA:**
+`ash
+# Claude deve criar arquivo automaticamente
+# Local: docs/claude-context/analysis/ANALISE_CORE_[DATA].md
+# Conteúdo: Análise completa usando template
+`
+
+#### **2. Atualizar CURRENT_STATUS.md automaticamente:**
+`markdown
+# Estado Atual - [DATA] - [HORA]
+
+**Análise Concluída**: Módulo CORE analisado ✅
+**Problemas Identificados**: [X] problemas (ALTA: Y, MÉDIA: Z, BAIXA: W)  
+**Melhorias Propostas**: [X] melhorias identificadas
+**Próxima Fase**: Implementar correções ALTA prioridade
+
+### Descobertas Principais:
+- [Lista top 3 problemas encontrados]
+- [Lista top 3 melhorias propostas]
+
+### Próxima Ação:
+- **Imediato**: [próxima correção específica]
+- **Arquivos para próxima conversa**: [listar arquivos necessários]
+`
+
+#### **3. Atualizar MASTER_ANALYSIS.md automaticamente:**
+`markdown
+## Historico de Analises
+- ✅ **CORE** (29/06/2025): [X] problemas, [Y] melhorias - ANALISE_CORE_29-06-2025.md
+- [ ] **MODULES**: Pendente
+- [ ] **UTILS**: Pendente  
+- [ ] **FRONTEND**: Pendente
+`
+
+#### **4. Gerar COMMIT automático:**
+`ash
+git add .
+git commit -m "docs: análise completa módulo CORE" \
+           -m "Identificados [X] problemas e [Y] melhorias" \
+           -m "- Problemas ALTA prioridade: [número]" \
+           -m "- Arquivo: ANALISE_CORE_[DATA].md criado" \
+           -m "- Status: pronto para fase implementação" \
+           -m "- Próximo: corrigir problema [nome] em [arquivo]"
+`
+
+---
+
+## 🚨 COMANDOS EXPLÍCITOS PARA CLAUDE
+
+### **Claude, você DEVE executar AUTOMATICAMENTE:**
+
+#### **👉 Após identificar cada problema:**
+1. Criar micro-update IMEDIATO
+2. Adicionar ao MICRO_UPDATES.md
+3. Continuar análise
+
+#### **👉 Ao final da análise:**
+1. Salvar ANALISE_CORE_[DATA].md completa
+2. Atualizar CURRENT_STATUS.md com descobertas
+3. Atualizar MASTER_ANALYSIS.md com progresso
+4. Gerar commit automático descritivo
+5. Informar próximos passos específicos
+
+#### **👉 Não aguardar instruções:**
+- **NÃO** pergunte "Devo atualizar os arquivos?"
+- **NÃO** aguarde confirmação para salvar
+- **FAÇA** tudo automaticamente conforme instruções
+- **MANTENHA** contexto sempre atualizado
+
+---
+
+## 🎯 RESULTADO GARANTIDO
+
+### **Ao final desta conversa, você DEVE ter:**
+- ✅ Arquivo ANALISE_CORE_[DATA].md completo
+- ✅ CURRENT_STATUS.md atualizado com descobertas  
+- ✅ MASTER_ANALYSIS.md marcado como concluído
+- ✅ MICRO_UPDATES.md com progresso da sessão
+- ✅ Commit automático gerado e documentado
+- ✅ Próximos passos claramente definidos
+
+### **Para próxima conversa:**
+- 🎯 Objetivo específico baseado na análise
+- 📁 Lista exata de arquivos necessários  
+- ⏱️ Tempo estimado para correção
+- 📊 Contexto 100% atualizado e preservado
+
+---
+
+**🔥 AGORA CLAUDE VAI TRABALHAR AUTOMATICAMENTE!**
+**ZERO intervenção manual necessária!**
