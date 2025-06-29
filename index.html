@@ -258,6 +258,8 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
+            overflow: visible;
         }
         
         .dia:hover {
@@ -272,6 +274,248 @@
             text-align: center;
             font-weight: bold;
             border-radius: 8px;
+        }
+        
+        .dia-numero {
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dia-feriado {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+        
+        .feriado-label {
+            font-size: 10px;
+            background: #f59e0b;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .hoje {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .outro-mes {
+            background: #f9fafb;
+            color: #9ca3af;
+        }
+        
+        /* Eventos no calendário */
+        .evento {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .evento:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .evento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .evento-info {
+            font-size: 9px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .evento-duracao {
+            font-size: 9px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+        
+        .evento-reuniao { background: #3b82f6; }
+        .evento-entrega { background: #10b981; }
+        .evento-prazo { background: #ef4444; }
+        .evento-marco { background: #8b5cf6; }
+        .evento-outro { background: #6b7280; }
+        
+        .evento-dia-completo {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            margin: 2px -4px;
+            padding: 6px 8px;
+        }
+        
+        .evento-multi-dia {
+            border-left: 3px solid #1e40af;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+        }
+        
+        .recorrente-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            opacity: 0.8;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .evento:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+        
+        /* Timeline de eventos */
+        .timeline-container {
+            margin-top: 24px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 24px;
+            border-left: 2px solid #e5e7eb;
+        }
+        
+        .timeline-item:last-child {
+            border-left: none;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #3b82f6;
+        }
+        
+        .timeline-content {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        /* Configurações de recorrência */
+        .recorrencia-config {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Horários */
+        .horario-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .horario-group .form-group {
+            margin-bottom: 0;
+        }
+        
+        /* Pessoas e tarefas selecionadas */
+        .pessoas-selecionadas,
+        .tarefas-vinculadas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            min-height: 40px;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #f9fafb;
+        }
+        
+        .pessoa-chip,
+        .tarefa-chip {
+            background: #e5e7eb;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .pessoa-chip .remove,
+        .tarefa-chip .remove {
+            cursor: pointer;
+            color: #6b7280;
+            font-weight: bold;
+        }
+        
+        .pessoa-chip .remove:hover,
+        .tarefa-chip .remove:hover {
+            color: #ef4444;
+        }
+        
+        .lista-vazia {
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 13px;
+            padding: 8px;
         }
         
         /* Responsivo básico */
@@ -1089,6 +1333,195 @@
     <script src="assets/js/config/constants.js"></script>
     <script src="assets/js/config/firebase.js"></script>
     
+    <!-- DEPENDÊNCIAS CRÍTICAS - TERCEIRO -->
+    <script>
+        // ========== ESTADO GLOBAL INICIALIZAÇÃO ==========
+        
+        // Inicializar estado do sistema se não existir
+        if (typeof estadoSistema === 'undefined') {
+            window.estadoSistema = {
+                mesAtual: new Date().getMonth(),
+                anoAtual: new Date().getFullYear(),
+                areaAtual: null,
+                pessoaAtual: null,
+                filtroAtual: 'todos',
+                editandoAtividade: null,
+                editandoEvento: null,
+                editandoTarefa: null,
+                pessoasSelecionadas: new Set(),
+                tarefasVinculadas: new Map(),
+                versaoSistema: '5.1',
+                usuarioEmail: null,
+                usuarioNome: null,
+                alertasPrazosExibidos: new Set()
+            };
+            console.log('✅ Estado do sistema inicializado');
+        }
+        
+        // Inicializar dados do sistema se não existirem
+        if (typeof dados === 'undefined') {
+            window.dados = {
+                versao: 5,
+                areas: {
+                    documentacao: {
+                        nome: "Documentação & Arquivo",
+                        coordenador: "Coordenador",
+                        cor: "#8b5cf6",
+                        equipe: [{nome: "Membro 1", cargo: "Cargo 1"}],
+                        atividades: []
+                    }
+                },
+                eventos: [],
+                agendas: {},
+                feriados: {},
+                statusPessoal: {},
+                historico: [],
+                ultimaAtualizacao: new Date().toISOString()
+            };
+            console.log('✅ Dados do sistema inicializados');
+        }
+        
+        // ========== FUNÇÕES AUXILIARES ESSENCIAIS ==========
+        
+        // Formatar data no padrão brasileiro
+        if (typeof formatarData === 'undefined') {
+            window.formatarData = function(data) {
+                try {
+                    const d = new Date(data);
+                    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                } catch (error) {
+                    console.error('❌ Erro ao formatar data:', error);
+                    return data;
+                }
+            };
+        }
+        
+        // Calcular dias restantes
+        if (typeof calcularDiasRestantes === 'undefined') {
+            window.calcularDiasRestantes = function(prazo) {
+                try {
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    const dataPrazo = new Date(prazo);
+                    dataPrazo.setHours(0, 0, 0, 0);
+                    return Math.floor((dataPrazo - hoje) / (1000 * 60 * 60 * 24));
+                } catch (error) {
+                    console.error('❌ Erro ao calcular dias restantes:', error);
+                    return 0;
+                }
+            };
+        }
+        
+        // Salvar dados (versão básica)
+        if (typeof salvarDados === 'undefined') {
+            window.salvarDados = function() {
+                try {
+                    console.log('💾 Salvando dados...');
+                    localStorage.setItem('sistemaGestaoBackup', JSON.stringify(dados));
+                    
+                    if (window.database && typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+                        dados.ultimaAtualizacao = new Date().toISOString();
+                        window.database.ref('dados').set(dados)
+                            .then(() => console.log('✅ Dados salvos no Firebase'))
+                            .catch(error => console.error('❌ Erro ao salvar no Firebase:', error));
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('❌ Erro ao salvar dados:', error);
+                    return false;
+                }
+            };
+        }
+        
+        // Atualizar estatísticas
+        if (typeof atualizarEstatisticas === 'undefined') {
+            window.atualizarEstatisticas = function() {
+                try {
+                    let totalVerde = 0, totalAmarelo = 0, totalVermelho = 0, totalEventos = 0;
+                    
+                    if (dados.areas) {
+                        Object.values(dados.areas).forEach(area => {
+                            if (area.atividades) {
+                                area.atividades.forEach(atividade => {
+                                    switch(atividade.status) {
+                                        case 'verde': totalVerde++; break;
+                                        case 'amarelo': totalAmarelo++; break;
+                                        case 'vermelho': totalVermelho++; break;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    
+                    if (dados.eventos) {
+                        const hoje = new Date();
+                        totalEventos = dados.eventos.filter(evento => {
+                            const dataEvento = new Date(evento.data);
+                            return dataEvento.getMonth() === hoje.getMonth() && dataEvento.getFullYear() === hoje.getFullYear();
+                        }).length;
+                    }
+                    
+                    const updates = [
+                        { id: 'statEmDia', value: totalVerde },
+                        { id: 'statAtencao', value: totalAmarelo },
+                        { id: 'statAtraso', value: totalVermelho },
+                        { id: 'statEventos', value: totalEventos }
+                    ];
+                    
+                    updates.forEach(update => {
+                        const element = document.getElementById(update.id);
+                        if (element) element.textContent = update.value;
+                    });
+                    
+                    console.log('✅ Estatísticas atualizadas');
+                } catch (error) {
+                    console.error('❌ Erro ao atualizar estatísticas:', error);
+                }
+            };
+        }
+        
+        // Funções auxiliares básicas
+        if (typeof marcarEditando === 'undefined') {
+            window.marcarEditando = function(tipo, id) {
+                console.log(`📝 Marcando como editando: ${tipo} ${id}`);
+            };
+        }
+        
+        if (typeof pararEditando === 'undefined') {
+            window.pararEditando = function(tipo, id) {
+                console.log(`✅ Parando edição: ${tipo} ${id}`);
+            };
+        }
+        
+        // Sistema básico de notificações
+        if (typeof window.Notifications === 'undefined') {
+            window.Notifications = {
+                sucesso: function(msg) {
+                    console.log('✅ SUCESSO:', msg);
+                    const notification = document.getElementById('notification');
+                    if (notification) {
+                        const text = document.getElementById('notificationText');
+                        if (text) text.textContent = msg;
+                        notification.className = 'notification active';
+                        setTimeout(() => notification.classList.remove('active'), 3000);
+                    }
+                },
+                erro: function(msg) {
+                    console.error('❌ ERRO:', msg);
+                    const notification = document.getElementById('notification');
+                    if (notification) {
+                        const text = document.getElementById('notificationText');
+                        if (text) text.textContent = msg;
+                        notification.className = 'notification error active';
+                        setTimeout(() => notification.classList.remove('active'), 3000);
+                    }
+                }
+            };
+        }
+        
+        console.log('🔧 Dependências críticas carregadas');
+    </script>
+    
     <!-- Script temporário para resolver problemas imediatos -->
     <script>
         // Aguardar Firebase estar pronto
@@ -1103,6 +1536,9 @@
             console.log('Database:', !!window.database ? '✅' : '❌');
             console.log('Auth:', !!window.auth ? '✅' : '❌');
             console.log('Constants:', !!window.VERSAO_SISTEMA ? '✅' : '❌');
+            console.log('Estado Sistema:', !!window.estadoSistema ? '✅' : '❌');
+            console.log('Dados:', !!window.dados ? '✅' : '❌');
+            console.log('FormatarData:', typeof formatarData !== 'undefined' ? '✅' : '❌');
             console.groupEnd();
         }
         
@@ -1380,6 +1816,116 @@
         
         console.log('🔧 Funções temporárias carregadas - sistema funcionando temporariamente');
         console.log('⚠️ ATENÇÃO: Migre as funções completas para os módulos correspondentes!');
+        
+        // ========== INICIALIZAÇÃO AUTOMÁTICA DO CALENDÁRIO ==========
+        function aguardarEInicializarCalendario() {
+            let tentativas = 0;
+            const maxTentativas = 20;
+            
+            function tentar() {
+                tentativas++;
+                console.log(`📅 Tentativa ${tentativas}/${maxTentativas} de inicializar calendário...`);
+                
+                const calendarioDisponivel = (
+                    typeof window.calendarioFunctions !== 'undefined' &&
+                    typeof window.calendarioFunctions.inicializarCalendario === 'function'
+                );
+                
+                const dependenciasOK = (
+                    typeof estadoSistema !== 'undefined' &&
+                    typeof dados !== 'undefined' &&
+                    document.getElementById('calendario') !== null
+                );
+                
+                if (calendarioDisponivel && dependenciasOK) {
+                    console.log('✅ Calendário e dependências prontos! Inicializando...');
+                    
+                    // Aguardar um pouco mais para garantir estabilidade
+                    setTimeout(() => {
+                        try {
+                            const sucesso = window.calendarioFunctions.inicializarCalendario();
+                            if (sucesso) {
+                                console.log('🎉 Calendário inicializado com sucesso!');
+                                
+                                // Atualizar estatísticas
+                                setTimeout(() => {
+                                    if (typeof atualizarEstatisticas === 'function') {
+                                        atualizarEstatisticas();
+                                    }
+                                }, 100);
+                                
+                                // Mostrar mensagem de sucesso
+                                if (window.Notifications) {
+                                    window.Notifications.sucesso('Sistema carregado com sucesso!');
+                                }
+                            } else {
+                                console.warn('⚠️ Calendário inicializado parcialmente');
+                            }
+                        } catch (error) {
+                            console.error('❌ Erro ao inicializar calendário:', error);
+                        }
+                    }, 100);
+                    
+                } else if (tentativas < maxTentativas) {
+                    console.log('⏳ Aguardando calendário ou dependências... tentando novamente em 200ms');
+                    setTimeout(tentar, 200);
+                } else {
+                    console.warn('⚠️ Calendário não pôde ser inicializado automaticamente');
+                    console.log('📝 Tentando inicialização básica...');
+                    
+                    // Tentar inicialização básica do calendário
+                    try {
+                        const calendario = document.getElementById('calendario');
+                        if (calendario && estadoSistema) {
+                            calendario.innerHTML = '<div style="grid-column: span 7; text-align: center; padding: 40px; color: #6b7280;">📅 Calendário em carregamento...</div>';
+                            
+                            // Atualizar título do mês
+                            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                            const mesAno = document.getElementById('mesAno');
+                            if (mesAno) {
+                                mesAno.textContent = `${meses[estadoSistema.mesAtual]} ${estadoSistema.anoAtual}`;
+                            }
+                            
+                            console.log('📅 Calendário básico configurado');
+                        }
+                    } catch (error) {
+                        console.error('❌ Erro na inicialização básica:', error);
+                    }
+                }
+            }
+            
+            // Iniciar tentativas
+            tentar();
+        }
+        
+        // Inicializar quando DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(aguardarEInicializarCalendario, 500);
+            });
+        } else {
+            setTimeout(aguardarEInicializarCalendario, 300);
+        }
+        
+        // Inicialização adicional quando window carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🔄 Verificação final do sistema...');
+                
+                // Verificar se calendário ainda não foi inicializado
+                const calendario = document.getElementById('calendario');
+                if (calendario && (!calendario.children.length || calendario.innerHTML.includes('carregamento'))) {
+                    console.log('🔄 Calendário ainda não carregado, tentando novamente...');
+                    aguardarEInicializarCalendario();
+                }
+                
+                // Atualizar estatísticas se necessário
+                if (typeof atualizarEstatisticas === 'function') {
+                    atualizarEstatisticas();
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html>
