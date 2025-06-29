@@ -6,7 +6,713 @@
     <title>Sistema de Gestão - Obra 292 (v5.1) - TESTE</title>
     
     <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão Completo - Obra 292 (Firebase v5.1)</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/calendar.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-container">
+        <h2>🏗️ Sistema de Gestão</h2>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="seu@email.com">
+        </div>
+        
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        
+        <button class="btn btn-primary" style="width: 100%;" onclick="fazerLogin()">
+            Entrar
+        </button>
+        
+        <div style="margin-top: 16px; text-align: center;">
+            <a href="#" onclick="mostrarRegistro()" style="color: #3b82f6; text-decoration: none;">
+                Não tem conta? Registre-se
+            </a>
+        </div>
+    </div>
+    
+    <!-- Indicador de Sincronização -->
+    <div id="syncIndicator" class="sync-indicator synced">
+        <span class="loading" id="syncLoader" style="display: none;"></span>
+        <span id="syncText">✓ Sincronizado</span>
+    </div>
+    
+    <!-- Indicador de Usuários Online -->
+    <div id="usersOnline" class="users-online hidden">
+        <div style="font-size: 13px; color: #6b7280;">Equipe Online</div>
+        <div class="users-online-list" id="usersOnlineList"></div>
+    </div>
+    
+    <!-- Log de Atividades -->
+    <div class="activity-toggle" onclick="toggleActivityLog()">
+        📋 Atividades
+    </div>
+    
+    <div id="activityLog" class="activity-log">
+        <div class="activity-log-header">
+            <span>Atividades Recentes</span>
+            <span style="cursor: pointer;" onclick="toggleActivityLog()">✕</span>
+        </div>
+        <div class="activity-log-content" id="activityLogContent">
+            <!-- Atividades serão inseridas aqui -->
+        </div>
+    </div>
+    
+    <!-- Modal de Conflito -->
+    <div id="conflictModal" class="conflict-modal">
+        <h3>⚠️ Conflito de Edição</h3>
+        <p id="conflictMessage"></p>
+        <div class="conflict-options">
+            <button class="btn btn-primary" onclick="resolverConflito('manter')">
+                Manter Minhas Alterações
+            </button>
+            <button class="btn btn-secondary" onclick="resolverConflito('descartar')">
+                Usar Versão do Servidor
+            </button>
+        </div>
+    </div>
+    
+    <!-- Sistema de Notificações -->
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>
+    
+    <div class="container" id="mainContainer" class="hidden">
+        <!-- Breadcrumb de Navegação -->
+        <div id="breadcrumb" class="breadcrumb hidden">
+            <span id="breadcrumbPath"></span>
+        </div>
+        
+        <div class="header">
+            <div>
+                <h1>Sistema de Gestão Colaborativo</h1>
+                <p>Obra 292 - Museu Nacional</p>
+                <p style="font-size: 14px; color: #6b7280;">
+                    Sistema v5.1 Firebase - Melhorias Avançadas 🚀
+                    <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <p id="dataAtual" style="color: #6b7280;"></p>
+                <p style="font-weight: bold;">
+                    <span id="mesAno">Julho 2025</span>
+                </p>
+                <div style="margin-top: 8px;">
+                    <button class="btn btn-success btn-sm" onclick="exportarDados()">
+                        📥 Exportar
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="mostrarImportar()">
+                        📤 Importar
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="mostrarMarcarFeriado()">
+                        🎉 Feriados
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="fazerLogout()">
+                        🚪 Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Executivo -->
+        <div id="dashboardExecutivo">
+            <!-- Estatísticas Rápidas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="resumo-numero" style="color: #10b981;" id="statEmDia">0</div>
+                    <div>Em Dia</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressEmDia" style="background: #10b981;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="resumo-numero" style="color: #f59e0b;" id="statAtencao">0</div>
+                    <div>Atenção</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressAtencao" style="background: #f59e0b;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="resumo-numero" style="color: #ef4444;" id="statAtraso">0</div>
+                    <div>Atraso</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressAtraso" style="background: #ef4444;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="resumo-numero" style="color: #8b5cf6;" id="statEventos">0</div>
+                    <div>Eventos no Mês</div>
+                </div>
+            </div>
+            
+            <!-- Calendário -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>📅 Calendário da Equipe</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(-1)">◀ Anterior</button>
+                        <button class="btn btn-primary btn-sm" onclick="mostrarNovoEvento()">+ Novo Evento</button>
+                        <button class="btn btn-secondary btn-sm" onclick="mudarMes(1)">Próximo ▶</button>
+                    </div>
+                </div>
+                
+                <div id="calendario" class="calendario"></div>
+                
+                <div style="margin-top: 16px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px;">
+                    <span><span class="status-indicator evento-reuniao"></span>Reunião</span>
+                    <span><span class="status-indicator evento-entrega"></span>Entrega</span>
+                    <span><span class="status-indicator evento-prazo"></span>Prazo</span>
+                    <span><span class="status-indicator evento-marco"></span>Marco</span>
+                    <span><span class="status-indicator evento-outro"></span>Outros</span>
+                    <span><span class="status-indicator" style="background: #f59e0b;"></span>Feriado</span>
+                    <span>🔄 Evento Recorrente</span>
+                </div>
+            </div>
+            
+            <!-- Timeline de Próximos Eventos -->
+            <div class="timeline-container">
+                <h3 style="margin-bottom: 20px;">📍 Próximos Eventos Importantes</h3>
+                <div id="timelineEventos"></div>
+            </div>
+            
+            <!-- Busca e Filtros -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">🔍 Busca e Filtros</h3>
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar atividades, pessoas, eventos..." id="searchInput" onkeyup="buscarGlobalDebounced()">
+                    <button class="btn btn-primary" onclick="buscarGlobal()">Buscar</button>
+                </div>
+                <div class="filter-pills">
+                    <div class="filter-pill active" onclick="filtrarStatus('todos', this)">Todos</div>
+                    <div class="filter-pill" onclick="filtrarStatus('verde', this)">Em Dia</div>
+                    <div class="filter-pill" onclick="filtrarStatus('amarelo', this)">Atenção</div>
+                    <div class="filter-pill" onclick="filtrarStatus('vermelho', this)">Atraso</div>
+                </div>
+            </div>
+            
+            <!-- Dica do sistema -->
+            <div style="background: #dbeafe; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #1e40af;">
+                <strong>🔥 Sistema v5.1 - Novas Funcionalidades:</strong> 
+                <br><strong>✅ Edição Completa de Tarefas:</strong> Agora você pode editar descrição, prioridade e dependências
+                <br><strong>⚠️ Validação de Prazos:</strong> Sistema bloqueia criação de atividades com prazo no passado
+                <br><strong>📊 Progresso Automático:</strong> Calculado automaticamente baseado nas tarefas concluídas
+                <br><strong>🔔 Alertas Inteligentes:</strong> Notificações automáticas para prazos vencendo
+                <br><strong>⏰ Monitoramento 24/7:</strong> Sistema verifica automaticamente status das atividades
+                <br><strong>📱 Ainda mais responsivo:</strong> Funciona perfeitamente em qualquer dispositivo!
+            </div>
+            
+            <!-- Cards das Áreas -->
+            <div class="grid" id="areasGrid"></div>
+        </div>
+        
+        <!-- Painel de Área -->
+        <div id="painelArea" class="hidden">
+            <span class="back-btn" onclick="voltarDashboard()">← Voltar ao Dashboard</span>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="areaNome">Nome da Área</h2>
+                        <p id="areaCoordenador" style="color: #6b7280;">Coordenador</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="mostrarNovaAtividade()">+ Nova Atividade</button>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>👥 Equipe</h3>
+                    <div id="equipeLista"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>📋 Atividades em Andamento</h3>
+                    <div id="atividadesLista"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Agenda Individual -->
+        <div id="agendaIndividual" class="hidden">
+            <span class="back-btn" onclick="voltarParaArea()">← Voltar para Área</span>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="pessoaNome">Nome da Pessoa</h2>
+                        <p id="pessoaCargo" style="color: #6b7280;">Cargo</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary" onclick="mostrarNovaTarefa()">+ Nova Tarefa</button>
+                        <button class="btn btn-warning btn-sm" onclick="mostrarMarcarStatus()">📍 Status Diário</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3>📊 Minhas Responsabilidades</h3>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span id="contadorResponsabilidades" style="background: #e5e7eb; padding: 4px 12px; border-radius: 20px; font-size: 14px;">0</span>
+                            <button class="btn btn-success btn-sm" onclick="mostrarAdicionarResponsabilidade()" title="Buscar novas responsabilidades">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <select id="filtroResponsabilidades" onchange="renderizarResponsabilidades(estadoSistema.pessoaAtual)" 
+                                style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;">
+                            <option value="todas">🔍 Todas as responsabilidades</option>
+                            <option value="urgentes">⚡ Urgentes (≤ 3 dias)</option>
+                            <option value="emdia">✅ Em dia</option>
+                            <option value="atencao">⚠️ Atenção</option>
+                            <option value="atrasadas">❌ Atrasadas</option>
+                        </select>
+                    </div>
+                    <div id="responsabilidadesLista"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>📅 Agenda da Semana</h3>
+                    <div class="agenda-semana" id="agendaSemana"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>📝 Observações Pessoais</h3>
+                <textarea id="observacoesPessoais" rows="3" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;" 
+                    placeholder="Adicione suas observações..." onblur="salvarObservacoes()"></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Novo/Editar Evento -->
+    <div id="modalEvento" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="margin-bottom: 24px;" id="modalEventoTitulo">Novo Evento</h3>
+            <input type="hidden" id="eventoId">
+            
+            <div class="form-group">
+                <label>Tipo de Evento <span style="color: #ef4444;">*</span></label>
+                <select id="eventoTipo" onchange="atualizarCamposEvento()">
+                    <option value="reuniao">📅 Reunião</option>
+                    <option value="entrega">📦 Entrega</option>
+                    <option value="prazo">⏰ Prazo</option>
+                    <option value="marco">🎯 Marco do Projeto</option>
+                    <option value="outro">📌 Outro (visita, auditoria, etc)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Título <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="eventoTitulo" placeholder="Digite o título do evento" required>
+                <span class="error-message hidden" id="eventoTituloError">Título é obrigatório</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="eventoDescricao" rows="3" placeholder="Adicione uma descrição detalhada..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="eventoDiaCompleto" onchange="toggleHorarios()">
+                    Evento de dia completo
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label>Data <span style="color: #ef4444;">*</span></label>
+                <input type="date" id="eventoData" required>
+                <span class="error-message hidden" id="eventoDataError">Data é obrigatória</span>
+            </div>
+            
+            <div class="form-group" id="grupoDataFim" style="display: none;">
+                <label>Data de Término</label>
+                <input type="date" id="eventoDataFim">
+                <small style="color: #6b7280;">Para eventos de múltiplos dias</small>
+            </div>
+            
+            <div class="horario-group" id="grupoHorarios">
+                <div class="form-group">
+                    <label>Horário Início <span style="color: #ef4444;">*</span></label>
+                    <input type="time" id="eventoHorarioInicio" value="09:00" required>
+                    <span class="error-message hidden" id="eventoHorarioInicioError">Horário é obrigatório</span>
+                </div>
+                <div class="form-group">
+                    <label>Horário Fim</label>
+                    <input type="time" id="eventoHorarioFim" value="10:00">
+                </div>
+            </div>
+            
+            <div class="form-group" id="grupoLocal">
+                <label>Local</label>
+                <input type="text" id="eventoLocal" placeholder="Ex: Sala de reunião, Canteiro de obras...">
+            </div>
+            
+            <div class="form-group">
+                <label id="labelPessoas">Participantes</label>
+                <select id="eventoPessoas" onchange="adicionarPessoa()">
+                    <option value="">Selecionar pessoa...</option>
+                </select>
+                <div class="pessoas-selecionadas" id="pessoasSelecionadas"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="eventoRecorrente" onchange="toggleRecorrencia()">
+                    Evento recorrente
+                </label>
+            </div>
+            
+            <div class="recorrencia-config hidden" id="recorrenciaConfig">
+                <div class="form-group">
+                    <label>Tipo de Recorrência</label>
+                    <select id="recorrenciaTipo" onchange="atualizarConfigRecorrencia()">
+                        <option value="diaria">Diária</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quinzenal">Quinzenal</option>
+                        <option value="mensal">Mensal</option>
+                        <option value="bimestral">Bimestral</option>
+                        <option value="personalizada">Personalizada</option>
+                    </select>
+                </div>
+                
+                <div class="form-group hidden" id="grupoDiasSemana">
+                    <label>Dias da Semana</label>
+                    <div class="checkbox-group" style="flex-direction: column; gap: 8px;">
+                        <label><input type="checkbox" value="0"> Domingo</label>
+                        <label><input type="checkbox" value="1"> Segunda</label>
+                        <label><input type="checkbox" value="2"> Terça</label>
+                        <label><input type="checkbox" value="3"> Quarta</label>
+                        <label><input type="checkbox" value="4"> Quinta</label>
+                        <label><input type="checkbox" value="5"> Sexta</label>
+                        <label><input type="checkbox" value="6"> Sábado</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Até quando?</label>
+                    <input type="date" id="recorrenciaFim">
+                    <small style="color: #6b7280;">Deixe vazio para continuar indefinidamente</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Vincular a Tarefas</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="abrirSeletorTarefas()">
+                    + Selecionar Tarefas
+                </button>
+                <div class="tarefas-vinculadas" id="tarefasVinculadas"></div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalEvento')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarEvento()" id="btnSalvarEvento">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Nova/Editar Atividade -->
+    <div id="modalAtividade" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px;" id="modalAtividadeTitulo">Nova Atividade</h3>
+            <input type="hidden" id="atividadeId">
+            <div class="form-group">
+                <label>Nome da Atividade <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="atividadeNome" placeholder="Digite o nome da atividade" required>
+                <span class="error-message hidden" id="atividadeNomeError">Nome é obrigatório</span>
+            </div>
+            <div class="form-group">
+                <label>Prazo <span style="color: #ef4444;">*</span></label>
+                <input type="date" id="atividadePrazo" required onchange="validarPrazoAtividade()">
+                <span class="error-message hidden" id="atividadePrazoError">Prazo é obrigatório</span>
+                <span class="error-message hidden" id="atividadePrazoPassadoError">⚠️ Prazo não pode ser no passado!</span>
+            </div>
+            <div class="form-group">
+                <label>Responsáveis <span style="color: #ef4444;">*</span></label>
+                <select id="atividadeResponsaveis" multiple style="height: 100px;" required></select>
+                <small style="color: #6b7280;">Segure Ctrl para selecionar múltiplos</small>
+                <span class="error-message hidden" id="atividadeResponsaveisError">Selecione ao menos um responsável</span>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="atividadeStatus">
+                    <option value="verde">🟢 Em Dia</option>
+                    <option value="amarelo">🟡 Atenção</option>
+                    <option value="vermelho">🔴 Atraso</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Progresso (%) <span class="tooltip" data-tooltip="Calculado automaticamente pelas tarefas">ℹ️</span></label>
+                <input type="number" id="atividadeProgresso" min="0" max="100" placeholder="Calculado automaticamente" readonly 
+                       style="background: #f9fafb; cursor: not-allowed;">
+                <small style="color: #6b7280;">O progresso é calculado automaticamente baseado nas tarefas concluídas</small>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalAtividade')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarAtividade()" id="btnSalvarAtividade">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Nova Tarefa -->
+    <div id="modalTarefa" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px;">Nova Tarefa Pessoal</h3>
+            <div class="form-group">
+                <label>Tipo de Agendamento</label>
+                <select id="tarefaTipo" onchange="alternarTipoAgendamento()">
+                    <option value="semanal">Dia da Semana</option>
+                    <option value="data">Data Específica</option>
+                </select>
+            </div>
+            <div class="form-group" id="grupoDiaSemana">
+                <label>Dia da Semana</label>
+                <select id="tarefaDia">
+                    <option value="segunda">Segunda-feira</option>
+                    <option value="terca">Terça-feira</option>
+                    <option value="quarta">Quarta-feira</option>
+                    <option value="quinta">Quinta-feira</option>
+                    <option value="sexta">Sexta-feira</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="grupoData">
+                <label>Data Específica <span style="color: #ef4444;">*</span></label>
+                <input type="date" id="tarefaDataEspecifica">
+                <span class="error-message hidden" id="tarefaDataError">Data é obrigatória</span>
+            </div>
+            <div class="form-group">
+                <label>Descrição <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="tarefaDescricao" placeholder="Digite a descrição da tarefa" required>
+                <span class="error-message hidden" id="tarefaDescricaoError">Descrição é obrigatória</span>
+            </div>
+            <div class="form-group">
+                <label>Horário <span style="color: #ef4444;">*</span></label>
+                <input type="time" id="tarefaHorario" required>
+                <span class="error-message hidden" id="tarefaHorarioError">Horário é obrigatório</span>
+            </div>
+            <div class="form-group">
+                <label>Recorrência</label>
+                <select id="tarefaRecorrencia">
+                    <option value="unica">Única vez</option>
+                    <option value="diaria">Diária</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="quinzenal">Quinzenal</option>
+                    <option value="mensal">Mensal</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="tarefaCalendario">
+                        📅 Mostrar no calendário da equipe
+                    </label>
+                </div>
+                <small style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;">
+                    Marque para tarefas importantes que toda equipe deve ver
+                </small>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalTarefa')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarTarefa()" id="btnSalvarTarefa">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Editar Tarefa Individual -->
+    <div id="modalEditarTarefa" class="modal">
+        <div class="modal-content modal-editar-tarefa">
+            <h3 style="margin-bottom: 24px;">✏️ Editar Tarefa</h3>
+            <input type="hidden" id="editTarefaAtividadeId">
+            <input type="hidden" id="editTarefaId">
+            
+            <div class="form-group">
+                <label>Descrição <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="editTarefaDescricao" placeholder="Digite a descrição da tarefa" required>
+                <span class="error-message hidden" id="editTarefaDescricaoError">Descrição é obrigatória</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Prioridade</label>
+                <select id="editTarefaPrioridade">
+                    <option value="baixa">🟢 Baixa</option>
+                    <option value="media">🟡 Média</option>
+                    <option value="alta">🔴 Alta</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Responsável</label>
+                <select id="editTarefaResponsavel">
+                    <!-- Será preenchido dinamicamente -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Prazo (opcional)</label>
+                <input type="date" id="editTarefaPrazo">
+            </div>
+            
+            <div class="form-group">
+                <label>Dependências</label>
+                <div id="editTarefaDependencias" style="max-height: 150px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px;">
+                    <!-- Será preenchido dinamicamente -->
+                </div>
+                <small style="color: #6b7280;">Selecione tarefas que devem ser concluídas antes desta</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea id="editTarefaObservacoes" rows="3" placeholder="Adicione observações sobre a tarefa..."></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalEditarTarefa')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarEdicaoTarefa()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Marcar Status -->
+    <div id="modalStatus" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px;">Marcar Status do Dia</h3>
+            <div class="form-group">
+                <label>Data <span style="color: #ef4444;">*</span></label>
+                <input type="date" id="statusData" required>
+                <span class="error-message hidden" id="statusDataError">Data é obrigatória</span>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="statusTipo">
+                    <option value="presente">✅ Presente</option>
+                    <option value="ausencia">❌ Ausência</option>
+                    <option value="home-office">🏠 Home Office</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Observação (opcional)</label>
+                <input type="text" id="statusObservacao" placeholder="Ex: Consulta médica, reunião externa...">
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalStatus')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarStatus()">Salvar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Marcar Feriado -->
+    <div id="modalFeriado" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px;">Gerenciar Feriados</h3>
+            <div class="form-group">
+                <label>Data <span style="color: #ef4444;">*</span></label>
+                <input type="date" id="feriadoData" required>
+                <span class="error-message hidden" id="feriadoDataError">Data é obrigatória</span>
+            </div>
+            <div class="form-group">
+                <label>Nome do Feriado <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="feriadoNome" placeholder="Ex: Dia da Independência" required>
+                <span class="error-message hidden" id="feriadoNomeError">Nome é obrigatório</span>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalFeriado')">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarFeriado()">Salvar</button>
+            </div>
+            
+            <hr style="margin: 24px 0;">
+            
+            <h4 style="margin-bottom: 16px;">Feriados Cadastrados</h4>
+            <div id="listaFeriados"></div>
+        </div>
+    </div>
+    
+    <!-- Modal de Importar -->
+    <div id="modalImportar" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px;">Importar Dados</h3>
+            <div class="form-group">
+                <label>Selecione o arquivo JSON</label>
+                <input type="file" id="importFile" accept=".json">
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModal('modalImportar')">Cancelar</button>
+                <button class="btn btn-primary" onclick="importarDados()">Importar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Seleção de Tarefas -->
+    <div id="modalSeletorTarefas" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h3 style="margin-bottom: 24px;">Vincular Tarefas ao Evento</h3>
+            <div class="form-group">
+                <label>Buscar tarefas</label>
+                <input type="text" id="buscarTarefaVinculo" placeholder="Digite para buscar..." onkeyup="filtrarTarefasVinculo()">
+            </div>
+            <div style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+                <div id="listaTarefasVinculo"></div>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="fecharModalSeletorTarefas()">Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Configuration Scripts -->
+    <script src="assets/js/config/constants.js"></script>
+    <script src="assets/js/config/firebase.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="assets/js/core/state.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/sync.js"></script>
+    <script src="assets/js/core/init.js"></script>
+    <script src="assets/js/core/auto-org.js"></script>
+    
+    <!-- Utils Scripts -->
+    <script src="assets/js/utils/helpers.js"></script>
+    <script src="assets/js/utils/validators.js"></script>
+    <script src="assets/js/utils/notifications.js"></script>
+    <script src="assets/js/utils/dom.js"></script>
+    <script src="assets/js/utils/functions-criticas.js"></script>
+    
+    <!-- Modules Scripts -->
+    <script src="assets/js/modules/dashboard.js"></script>
+    <script src="assets/js/modules/calendario.js"></script>
+    <script src="assets/js/modules/atividades.js"></script>
+    <script src="assets/js/modules/tarefas.js"></script>
+    <script src="assets/js/modules/agenda.js"></script>
+    <script src="assets/js/modules/relatorios.js"></script>
+    <script src="assets/js/modules/diagnostico_sistema.js"></script>
+    
+    <!-- Main Application Script -->
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
     
     body { 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
