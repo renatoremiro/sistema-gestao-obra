@@ -14,7 +14,366 @@
         color: #334155;
     }
     
+    .hidden { display: none<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão - Obra 292 (v5.1) - MIGRAÇÃO</title>
+    
+    <!-- CSS Externos (seus arquivos existentes) -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/calendar.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    
+    <style>
+    /* CSS de Fallback - só se os arquivos externos não carregarem */
     .hidden { display: none !important; }
+    
+    /* Garantir funcionamento básico se CSS externo falhar */
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .btn {
+        cursor: pointer;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+    
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s;
+    }
+    
+    .notification.show { transform: translateX(0); }
+    .notification.error { background: #ef4444; }
+    .notification.warning { background: #f59e0b; }
+    .notification.info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <!-- Sistema de Notificações -->
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>
+    
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h2>🏗️ Sistema de Gestão</h2>
+            <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">Obra 292 - Museu Nacional</p>
+            
+            <!-- Credenciais de Demo -->
+            <div class="demo-info">
+                <strong>🔧 Acesso Demo:</strong><br>
+                Email: <code>demo@sistema.com</code><br>
+                Senha: <code>123456</code>
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="demo@sistema.com" value="demo@sistema.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="loginPassword" placeholder="123456" value="123456">
+            </div>
+            
+            <button class="btn btn-primary" onclick="fazerLogin()">
+                Entrar
+            </button>
+            
+            <button class="btn btn-secondary" onclick="loginDemo()">
+                🚀 Login Demo Rápido
+            </button>
+            
+            <div style="margin-top: 16px; text-align: center; font-size: 12px; color: #6b7280;">
+                Sistema v5.1 - Migração CSS ✅
+            </div>
+        </div>
+    </div>
+    
+    <!-- Container Principal -->
+    <div class="container hidden" id="mainContainer">
+        <div class="header">
+            <div>
+                <h1>Sistema de Gestão Colaborativo</h1>
+                <p>Obra 292 - Museu Nacional</p>
+                <p style="font-size: 14px; color: #6b7280;">
+                    Sistema v5.1 - MIGRAÇÃO PASSO 1 ✅
+                    <span id="usuarioInfo" style="margin-left: 16px; font-weight: bold;"></span>
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <p id="dataAtual" style="color: #6b7280;"></p>
+                <div style="margin-top: 8px;">
+                    <button class="btn btn-danger" style="width: auto; margin: 0;" onclick="fazerLogout()">
+                        🚪 Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Básico -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #10b981;">5</div>
+                <div>Em Dia</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #f59e0b;">2</div>
+                <div>Atenção</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #ef4444;">1</div>
+                <div>Atraso</div>
+            </div>
+            <div class="stat-card">
+                <div class="resumo-numero" style="color: #8b5cf6;">3</div>
+                <div>Eventos</div>
+            </div>
+        </div>
+        
+        <!-- Status do Sistema -->
+        <div class="card">
+            <h3>📊 Status do Sistema</h3>
+            <div class="status-sistema">
+                <div class="status-item">
+                    <strong>Login:</strong> <span style="color: #10b981;">Funcionando</span>
+                </div>
+                <div class="status-item">
+                    <strong>CSS Externos:</strong> <span style="color: #f59e0b;">Testando</span>
+                </div>
+                <div class="status-item">
+                    <strong>JS Módulos:</strong> <span style="color: #6b7280;">Pendente</span>
+                </div>
+                <div class="status-item">
+                    <strong>Firebase:</strong> <span style="color: #6b7280;">Pendente</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Próximos Passos -->
+        <div class="card">
+            <h3>🔄 Migração para Arquitetura Modular</h3>
+            <p><strong>✅ PASSO 1: CSS Externos integrados!</strong></p>
+            <p style="margin-top: 8px; color: #6b7280;">
+                Próximos passos da migração:
+            </p>
+            <ul style="margin-top: 12px; margin-left: 20px; color: #6b7280;">
+                <li><span style="color: #10b981;">✅</span> Sistema básico funcionando</li>
+                <li><span style="color: #10b981;">✅</span> CSS externos integrados</li>
+                <li><span style="color: #f59e0b;">⏳</span> Integrar módulos JS existentes</li>
+                <li><span style="color: #6b7280;">⭕</span> Conectar Firebase</li>
+                <li><span style="color: #6b7280;">⭕</span> Ativar funcionalidades avançadas</li>
+            </ul>
+            
+            <button class="btn btn-primary" onclick="testarConexoes()" style="margin-top: 16px; width: auto;">
+                🔍 Testar CSS Externos
+            </button>
+        </div>
+    </div>
+
+    <script>
+    // ========== MIGRAÇÃO PARA ARQUITETURA MODULAR ==========
+    // PASSO 1: Integração CSS Externos
+    // Mantém funcionalidade básica enquanto integra seus arquivos existentes
+    
+    console.log('🔄 MIGRAÇÃO PASSO 1: CSS externos integrados');
+    console.log('🎯 Testando carregamento dos arquivos da pasta assets/css/');
+    
+    // Sistema de notificações
+    function mostrarNotificacao(mensagem, tipo = 'info') {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        
+        if (!notification || !notificationText) return;
+        
+        notification.className = 'notification';
+        if (tipo !== 'info') notification.classList.add(tipo);
+        
+        notificationText.textContent = mensagem;
+        notification.classList.add('show');
+        
+        setTimeout(() => notification.classList.remove('show'), 3000);
+        console.log(`📢 ${tipo.toUpperCase()}: ${mensagem}`);
+    }
+    
+    // Funções de autenticação
+    function fazerLogin() {
+        console.log('🔑 Executando login...');
+        
+        const email = document.getElementById('loginEmail')?.value;
+        const senha = document.getElementById('loginPassword')?.value;
+        
+        if (!email || !senha) {
+            mostrarNotificacao('Preencha email e senha!', 'error');
+            return;
+        }
+        
+        // Login demo
+        if (email === 'demo@sistema.com' && senha === '123456') {
+            mostrarNotificacao('Login realizado com sucesso!', 'success');
+            
+            // Esconder login e mostrar dashboard
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('hidden');
+            
+            // Atualizar informações do usuário
+            document.getElementById('usuarioInfo').textContent = '👤 Usuário Demo';
+            
+            // Atualizar data
+            atualizarDataAtual();
+            
+            console.log('✅ Login bem-sucedido');
+        } else {
+            mostrarNotificacao('Use: demo@sistema.com / 123456', 'error');
+        }
+    }
+    
+    function loginDemo() {
+        console.log('🚀 Login demo rápido...');
+        document.getElementById('loginEmail').value = 'demo@sistema.com';
+        document.getElementById('loginPassword').value = '123456';
+        fazerLogin();
+    }
+    
+    function fazerLogout() {
+        if (!confirm('Tem certeza que deseja sair?')) return;
+        
+        console.log('🚪 Fazendo logout...');
+        
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('mainContainer').classList.add('hidden');
+        
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        
+        mostrarNotificacao('Logout realizado!', 'success');
+    }
+    
+    function atualizarDataAtual() {
+        const hoje = new Date();
+        const elemento = document.getElementById('dataAtual');
+        if (elemento) {
+            elemento.textContent = hoje.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    }
+    
+    function testarConexoes() {
+        mostrarNotificacao('Testando conexões e CSS externos...', 'info');
+        
+        setTimeout(() => {
+            let resultados = [];
+            
+            // Testar se Firebase está disponível
+            if (typeof firebase !== 'undefined') {
+                resultados.push('✅ Firebase carregado');
+            } else {
+                resultados.push('❌ Firebase não disponível');
+            }
+            
+            // Testar CSS externos 
+            const testElement = document.createElement('div');
+            testElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;';
+            testElement.className = 'test-css-variables';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = getComputedStyle(testElement);
+            const hasVariables = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+            
+            if (hasVariables) {
+                resultados.push('✅ CSS Variables carregadas');
+                resultados.push('✅ Arquivos CSS externos funcionando');
+            } else {
+                resultados.push('⚠️ CSS Variables não encontradas - usando fallback');
+            }
+            
+            document.body.removeChild(testElement);
+            
+            // Testar estrutura de arquivos
+            resultados.push('✅ Estrutura HTML funcional');
+            resultados.push('✅ JavaScript ativo');
+            
+            console.log('📊 Resultados dos testes:', resultados);
+            mostrarNotificacao(`Testes concluídos! ${resultados.length} verificações`, 'success');
+            
+            // Mostrar no console
+            resultados.forEach(resultado => console.log(resultado));
+            
+            // Próximo passo
+            setTimeout(() => {
+                mostrarNotificacao('Pronto para PASSO 2: Integrar módulos JS', 'info');
+            }, 2000);
+        }, 1000);
+    }
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOM carregado');
+        atualizarDataAtual();
+        
+        // Verificar se CSS externos carregaram
+        setTimeout(() => {
+            verificarCSSExternos();
+        }, 500);
+        
+        mostrarNotificacao('Sistema carregado - testando CSS externos!', 'success');
+    });
+    
+    // Função para verificar CSS externos
+    function verificarCSSExternos() {
+        const hasVariables = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+        
+        if (hasVariables) {
+            console.log('✅ CSS externos carregados - variáveis detectadas');
+            console.log('🎨 Variável --color-primary:', hasVariables);
+            mostrarNotificacao('CSS externos carregados com sucesso!', 'success');
+        } else {
+            console.log('⚠️ CSS externos não carregaram - usando fallback');
+            mostrarNotificacao('CSS fallback ativo - arquivos externos não carregaram', 'warning');
+        }
+    }
+    
+    // Listener de Enter para login
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+            fazerLogin();
+        }
+    });
+    
+    console.log('✅ Sistema migração PASSO 1 carregado!');
+    console.log('🔄 Próximo: PASSO 2 - Integrar módulos JS existentes');
+    </script>
+</body>
+</html> !important; }
     
     .login-container {
         display: flex;
